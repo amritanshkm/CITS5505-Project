@@ -1,30 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Explorer</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
 
-<h1>Event Explorer</h1>
+<header>
+    <h1>Event Explorer</h1>
+</header>
 
-<input type="text" placeholder="Search events...">
+<section class="controls">
+    <input type="text" placeholder="Search events...">
 
-<select>
-    <option>All Events</option>
-    <option>Free</option>
-    <option>Paid</option>
-</select>
+    <select>
+        <option>All Events</option>
+        <option>Free</option>
+        <option>Paid</option>
+    </select>
+</section>
 
-<div id="map">
-    <p>Map will go here</p>
-</div>
+<section class="main-container">
+    
+    <!-- Map Section -->
+    <div id="map">
+        <p>Map will go here</p>
+    </div>
 
-<div id="events">
-    <div class="card">Event 1</div>
-    <div class="card">Event 2</div>
-</div>
+    <!-- Event Cards -->
+    <div id="events">
+        <div class="card">Event 1</div>
+        <div class="card">Event 2</div>
+        <div class="card">Event 3</div>
+    </div>
+
+</section>
 
 </body>
 </html>
