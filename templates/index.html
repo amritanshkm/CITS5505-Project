@@ -43,47 +43,30 @@
             </div>
 
             <div id="events" class="event-list">
-                <article class="card event-card">
-                    <span class="event-category">Tech</span>
-                    <h3>Tech Networking Night</h3>
-                    <p class="event-meta">12 Apr · 6:00 PM · Perth CBD</p>
-                    <p class="event-description">Meet developers, designers, and founders for an evening of networking and startup conversations.</p>
-                    <div class="event-footer">
-                        <span class="event-price free">Free</span>
-                        <button type="button">View Details</button>
-                    </div>
-                </article>
-
-                <article class="card event-card">
-                    <span class="event-category">Wellness</span>
-                    <h3>Beginner Yoga in the Park</h3>
-                    <p class="event-meta">13 Apr · 8:00 AM · Kings Park</p>
-                    <p class="event-description">A relaxed outdoor yoga session for beginners. Bring a mat, water bottle, and a friend.</p>
-                    <div class="event-footer">
-                        <span class="event-price paid">$10</span>
-                        <button type="button">View Details</button>
-                    </div>
-                </article>
-
-                <article class="card event-card">
-                    <span class="event-category">Business</span>
-                    <h3>Startup Pitch Evening</h3>
-                    <p class="event-meta">15 Apr · 7:00 PM · Subiaco</p>
-                    <p class="event-description">Watch early-stage founders pitch ideas, connect with mentors, and explore local startup opportunities.</p>
-                    <div class="event-footer">
-                        <span class="event-price paid">$15</span>
-                        <button type="button">View Details</button>
-                    </div>
-                </article>
-
-                <article class="card event-card">
-                    <span class="event-category">Social</span>
-                    <h3>Sunset Beach Meetup</h3>
-                    <p class="event-meta">16 Apr · 5:30 PM · Cottesloe Beach</p>
-                    <p class="event-description">Casual beach meetup with games, snacks, and a chance to make new friends while watching the sunset.</p>
-                    <div class="event-footer">
-                        <span class="event-price free">Free</span>
-                        <button type="button">View Details</button>
+                
+                <div id="events" class="event-list">
+                    {% for event in events %}
+                    <article
+                        class="card event-card"
+                        data-title="{{ event.title }}"
+                        data-category="{{ event.category }}"
+                        data-price="{{ event.price_type }}"
+                        data-location="{{ event.location }}"
+                        data-lat="{{ event.coords[0] }}"
+                        data-lng="{{ event.coords[1] }}"
+                    >
+                        <span class="event-category">{{ event.category }}</span>
+                        <h3>{{ event.title }}</h3>
+                        <p class="event-meta">{{ event.date }} · {{ event.time }} · {{ event.location }}</p>
+                        <p class="event-description">{{ event.description }}</p>
+                        <div class="event-footer">
+                            <span class="event-price {{ event.price_type }}">{{ event.price_label }}</span>
+                            <button type="button">View Details</button>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                
                     </div>
                 </article>
             </div>
