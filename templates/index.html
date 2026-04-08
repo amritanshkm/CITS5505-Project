@@ -6,6 +6,10 @@
     <title>Event Explorer</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 </head>
 
 <body>
@@ -27,9 +31,9 @@
 <section class="main-container">
     
     <!-- Map Section -->
-    <div id="map">
-        <p>Map will go here</p>
-    </div>
+    
+        <div id="map"></div>
+    
 
     <!-- Event Cards -->
     <div id="events">
@@ -39,6 +43,6 @@
     </div>
 
 </section>
-
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
