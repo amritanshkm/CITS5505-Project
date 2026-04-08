@@ -3,46 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Explorer</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
+    <title>EventHub</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
+    <header class="site-header">
+        <div class="brand-block">
+            <p class="eyebrow">Discover events near you</p>
+            <h1>EventHub</h1>
+            <p class="subtitle">Find meetups, workshops, fitness sessions, and social events happening around Perth.</p>
+        </div>
+    </header>
 
-<header>
-    <h1>Event Explorer</h1>
-</header>
+    <section class="controls">
+        <input type="text" id="search-input" placeholder="Search events, categories, or locations">
 
-<section class="controls">
-    <input type="text" placeholder="Search events...">
+        <select id="category-filter">
+            <option value="all">All Categories</option>
+            <option value="Tech">Tech</option>
+            <option value="Wellness">Wellness</option>
+            <option value="Business">Business</option>
+            <option value="Social">Social</option>
+            <option value="Music">Music</option>
+        </select>
 
-    <select>
-        <option>All Events</option>
-        <option>Free</option>
-        <option>Paid</option>
-    </select>
-</section>
+        <select id="price-filter">
+            <option value="all">All Prices</option>
+            <option value="free">Free</option>
+            <option value="paid">Paid</option>
+        </select>
+    </section>
 
-<section class="main-container">
-    
-    <!-- Map Section -->
-    
-        <div id="map"></div>
-    
+    <section class="content-layout">
+        <div class="events-panel">
+            <div class="section-heading">
+                <h2>Upcoming Events</h2>
+                <p>Browse what is happening this week.</p>
+            </div>
 
-    <!-- Event Cards -->
-    <div id="events">
-        <div class="card">Event 1</div>
-        <div class="card">Event 2</div>
-        <div class="card">Event 3</div>
-    </div>
+            <div id="events" class="event-list">
+                <article class="card event-card">
+                    <span class="event-category">Tech</span>
+                    <h3>Tech Networking Night</h3>
+                    <p class="event-meta">12 Apr · 6:00 PM · Perth CBD</p>
+                    <p class="event-description">Meet developers, designers, and founders for an evening of networking and startup conversations.</p>
+                    <div class="event-footer">
+                        <span class="event-price free">Free</span>
+                        <button type="button">View Details</button>
+                    </div>
+                </article>
 
-</section>
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+                <article class="card event-card">
+                    <span class="event-category">Wellness</span>
+                    <h3>Beginner Yoga in the Park</h3>
+                    <p class="event-meta">13 Apr · 8:00 AM · Kings Park</p>
+                    <p class="event-description">A relaxed outdoor yoga session for beginners. Bring a mat, water bottle, and a friend.</p>
+                    <div class="event-footer">
+                        <span class="event-price paid">$10</span>
+                        <button type="button">View Details</button>
+                    </div>
+                </article>
+
+                <article class="card event-card">
+                    <span class="event-category">Business</span>
+                    <h3>Startup Pitch Evening</h3>
+                    <p class="event-meta">15 Apr · 7:00 PM · Subiaco</p>
+                    <p class="event-description">Watch early-stage founders pitch ideas, connect with mentors, and explore local startup opportunities.</p>
+                    <div class="event-footer">
+                        <span class="event-price paid">$15</span>
+                        <button type="button">View Details</button>
+                    </div>
+                </article>
+
+                <article class="card event-card">
+                    <span class="event-category">Social</span>
+                    <h3>Sunset Beach Meetup</h3>
+                    <p class="event-meta">16 Apr · 5:30 PM · Cottesloe Beach</p>
+                    <p class="event-description">Casual beach meetup with games, snacks, and a chance to make new friends while watching the sunset.</p>
+                    <div class="event-footer">
+                        <span class="event-price free">Free</span>
+                        <button type="button">View Details</button>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <aside class="map-panel">
+            <div class="section-heading">
+                <h2>Event Map</h2>
+                <p>See where events are happening.</p>
+            </div>
+            <div id="map"></div>
+        </aside>
+    </section>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
