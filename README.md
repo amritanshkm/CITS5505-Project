@@ -8,9 +8,10 @@ The application is an **Event Finder & Sharing Platform** that allows users to c
 
 | UWA ID | Name | GitHub Username |
 | :--- | :--- | :--- |
-| 24290498 | Nyx Chen | [GitHub_Username_Placeholder] |
-| [Placeholder] | [Placeholder] | [Placeholder] |
-| [Placeholder] | [Placeholder] | [Placeholder] |
+| 24350545 | Neha Pathare | [@nehap523](https://github.com/nehap523) |
+| 24473572 | Sainath Reddy Mogullanolla | [@sainath282001](https://github.com/sainath282001) |
+| 24703293 | Amritansh Kaur Mamotra | [@amritanshkm](https://github.com/amritanshkm) |
+| 24290498 | Nyx Chen | [@hot-tofu-curd](https://github.com/hot-tofu-curd) |
 
 ## How to Launch the Application
 
