@@ -1,13 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EventHub</title>
+{% extends "base.html" %}
+
+{% block extra_head %}
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <header class="site-header">
         <div class="brand-block">
             <p class="eyebrow">Discover events near you</p>
@@ -61,7 +58,7 @@
                     <p class="event-description">{{ event.description }}</p>
                     <div class="event-footer">
                         <span class="event-price {{ event.price_type }}">{{ event.price_label }}</span>
-                        <button type="button">View Details</button>
+                        <button type="button" class="btn btn-primary">View Details</button>
                     </div>
                 </article>
                 {% endfor %}
@@ -76,8 +73,9 @@
             <div id="map"></div>
         </aside>
     </section>
+{% endblock %}
 
+{% block extra_scripts %}
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-</body>
-</html>
+{% endblock %}
