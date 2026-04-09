@@ -1,3 +1,18 @@
+/* ==========================================================================
+   👨‍💻 TEAM CUSTOM STYLES
+   ==========================================================================
+   Hey team! If Bootstrap doesn't cover exactly what you need for your page, 
+   feel free to write your custom CSS below. 
+   
+   Guidelines:
+   1. Keep it consistent: Try to match our general vibe (clean, soft shadows).
+   2. Colors: Use our Primary Indigo (#4f46e5) or Bootstrap's built-in colors.
+   3. Comment your code: Please leave a quick comment above your CSS block 
+   ========================================================================== */
+
+
+/* --- [Add your code below this line] --- */
+
 /* Global aesthetics improvement */
 
 body {
@@ -7,7 +22,8 @@ body {
 
 /* Navbar specifics */
 .navbar {
-    background-color: #4f46e5 !important; /* Elegant Indigo */
+    background-color: #4f46e5 !important;
+    /* Elegant Indigo */
 }
 
 /* Card adjustments for a premium feel */
