@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from app.forms import LoginForm, RegistrationForm
+from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm
 
 bp = Blueprint('main', __name__)
 
@@ -78,3 +78,45 @@ def logout():
     # TODO: integrate with flask_login
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.index'))
+
+MOCK_USER = {
+    "nickname": "AgileDev",
+    "email": "agile@uwa.edu.au"
+}
+
+MOCK_COLLECTIONS = [
+    {"event": "Tech Networking Night", "date": "12 Apr, 2026", "location": "Perth CBD"},
+    {"event": "Beginner Yoga in the Park", "date": "13 Apr, 2026", "location": "Kings Park"}
+]
+
+MOCK_LIKES = [
+    {"event": "Startup Pitch Evening", "date": "15 Apr, 2026", "location": "Subiaco"},
+    {"event": "Sunset Beach Meetup", "date": "16 Apr, 2026", "location": "Cottesloe Beach"}
+]
+
+@bp.route('/profile', methods=['GET', 'POST'])
+def profile():
+    profile_form = ProfileUpdateForm(prefix='profile')
+    password_form = ChangePasswordForm(prefix='password')
+    
+    if profile_form.submit_profile.data and profile_form.validate():
+        MOCK_USER['nickname'] = profile_form.nickname.data
+        MOCK_USER['email'] = profile_form.email.data
+        flash('Profile information updated successfully!', 'success')
+        return redirect(url_for('main.profile'))
+        
+    if password_form.submit_password.data and password_form.validate():
+        flash('Password changed successfully!', 'success')
+        return redirect(url_for('main.profile'))
+        
+    if request.method == 'GET':
+        profile_form.nickname.data = MOCK_USER['nickname']
+        profile_form.email.data = MOCK_USER['email']
+        
+    return render_template('profile.html', 
+                           title='My Profile', 
+                           profile_form=profile_form, 
+                           password_form=password_form,
+                           user=MOCK_USER,
+                           collections=MOCK_COLLECTIONS,
+                           likes=MOCK_LIKES)
