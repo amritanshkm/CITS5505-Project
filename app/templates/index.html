@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+    <header class="site-header">
+        <div class="brand-block">
+            <p class="eyebrow">Discover events near you</p>
+            <h1>EventHub</h1>
+            <p class="subtitle">Find meetups, workshops, fitness sessions, and social events happening around Perth.</p>
+        </div>
+    </header>
+
+    <section class="controls">
+        <input type="text" id="search-input" placeholder="Search events, categories, or locations">
+
+        <select id="category-filter">
+            <option value="all">All Categories</option>
+            <option value="Tech">Tech</option>
+            <option value="Wellness">Wellness</option>
+            <option value="Business">Business</option>
+            <option value="Social">Social</option>
+            <option value="Music">Music</option>
+        </select>
+
+        <select id="price-filter">
+            <option value="all">All Prices</option>
+            <option value="free">Free</option>
+            <option value="paid">Paid</option>
+        </select>
+    </section>
+
+    <section class="content-layout">
+        <div class="events-panel">
+            <div class="section-heading">
+                <h2>Upcoming Events</h2>
+                <p>Browse what is happening this week.</p>
+            </div>
+
+            <p id="results-count">Showing {{ events|length }} events</p>
+
+            <div id="events" class="event-list">
+                {% for event in events %}
+                <article
+                    class="card event-card"
+                    data-title="{{ event.title }}"
+                    data-category="{{ event.category }}"
+                    data-price="{{ event.price_type }}"
+                    data-location="{{ event.location }}"
+                    data-lat="{{ event.coords[0] }}"
+                    data-lng="{{ event.coords[1] }}"
+                >
+                    <span class="event-category">{{ event.category }}</span>
+                    <h3>{{ event.title }}</h3>
+                    <p class="event-meta">{{ event.date }} · {{ event.time }} · {{ event.location }}</p>
+                    <p class="event-description">{{ event.description }}</p>
+                    <div class="event-footer">
+                        <span class="event-price {{ event.price_type }}">{{ event.price_label }}</span>
+                        <button type="button" class="btn btn-primary">View Details</button>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+
+        <aside class="map-panel">
+            <div class="section-heading">
+                <h2>Event Map</h2>
+                <p>See where events are happening.</p>
+            </div>
+            <div id="map"></div>
+        </aside>
+    </section>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% endblock %}
