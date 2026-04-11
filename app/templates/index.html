@@ -58,7 +58,7 @@
                     <p class="event-description">{{ event.description }}</p>
                     <div class="event-footer">
                         <span class="event-price {{ event.price_type }}">{{ event.price_label }}</span>
-                        <button type="button" class="btn btn-primary">View Details</button>
+                        <a href="{{ url_for('main.event_detail', event_id=loop.index0) }}" class="btn btn-primary">View Details</a>
                     </div>
                 </article>
                 {% endfor %}

@@ -55,6 +55,14 @@ EVENTS = [
 def index():
     return render_template('index.html', title='Home', events=EVENTS)
 
+@bp.route('/event/<int:event_id>')
+def event_detail(event_id):
+    if event_id < 0 or event_id >= len(EVENTS):
+        flash('Event not found', 'danger')
+        return redirect(url_for('main.index'))
+    event = EVENTS[event_id]
+    return render_template('event_detail.html', title=event['title'], event=event, event_id=event_id)
+
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()

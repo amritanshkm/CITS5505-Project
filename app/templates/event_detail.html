@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+    <header class="site-header">
+        <div class="brand-block">
+            <p class="eyebrow">{{ event.category }} Event</p>
+            <h1>{{ event.title }}</h1>
+        </div>
+    </header>
+
+    <section class="content-layout">
+        <div class="events-panel">
+            <article 
+                class="card event-card p-4 active-card"
+                data-title="{{ event.title }}"
+                data-category="{{ event.category }}"
+                data-price="{{ event.price_type }}"
+                data-location="{{ event.location }}"
+                data-lat="{{ event.coords[0] }}"
+                data-lng="{{ event.coords[1] }}"
+                style="display: block; cursor: default;"
+            >
+                <div class="section-heading" style="margin-top: 0; padding-top: 0; border: none;">
+                    <h2>Event Details</h2>
+                </div>
+                
+                <p class="event-meta" style="font-size: 1.1rem;">
+                    <strong>Date:</strong> {{ event.date }}<br>
+                    <strong>Time:</strong> {{ event.time }}<br>
+                    <strong>Location:</strong> {{ event.location }}<br>
+                    <strong>Price:</strong> {{ event.price_label }}
+                </p>
+
+                <p class="event-description mt-3 mb-4" style="font-size: 1.05rem; line-height: 1.6;">
+                    {{ event.description }}
+                </p>
+                
+                <p><strong>Seats Left:</strong> 20</p>
+                
+                <div class="interaction-bar mt-4 pb-4 border-bottom">
+                    <button class="btn btn-outline-danger" onclick="increaseLike()" style="border-radius: 50px; padding: 0.5rem 1rem;">
+                        ❤️ Like
+                    </button>
+                    <span id="likeCount" class="ms-2 me-4 fw-bold">0</span>
+
+                    <button class="btn btn-primary" style="padding: 0.5rem 1.5rem;">
+                        Join Event
+                    </button>
+                </div>
+
+                <div class="payment-details mt-4 mb-4">
+                    <h4 class="mb-2">Payment Details</h4>
+                    <p class="text-muted">PayID: 0400 123 456</p>
+                </div>
+
+                <a href="{{ url_for('main.index') }}" class="btn btn-dark mt-2">&larr; Back to Home</a>
+            </article>
+        </div>
+
+        <aside class="map-panel">
+            <div class="section-heading">
+                <h2>Event Map</h2>
+                <p>Location for {{ event.title }}</p>
+            </div>
+            <div id="map"></div>
+        </aside>
+    </section>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        let likes = 0;
+        function increaseLike() {
+            likes = likes + 1;
+            document.getElementById("likeCount").innerText = likes;
+        }
+
+        // Focus map onto the event automatically
+        document.addEventListener('DOMContentLoaded', () => {
+            const card = document.querySelector('.event-card');
+            setTimeout(() => {
+                if (typeof focusEventOnMap === 'function') {
+                    focusEventOnMap(card);
+                }
+            }, 300);
+        });
+    </script>
+{% endblock %}
