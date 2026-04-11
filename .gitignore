@@ -42,3 +42,6 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Git messages
+.git_msg.txt
