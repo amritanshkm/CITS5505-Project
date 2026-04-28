@@ -65,6 +65,10 @@ class Event(db.Model):
     lng = db.Column(db.Float, nullable=False)
     capacity = db.Column(db.Integer, nullable=True) # Null if unlimited
     creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    @property
+    def coords(self):
+        return [self.lat, self.lng]
 
     # Relationships
     announcements = db.relationship('Announcement', backref='event', lazy='dynamic', cascade="all, delete-orphan")
