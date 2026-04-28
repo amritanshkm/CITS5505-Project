@@ -1,13 +1,14 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm, CommentForm, CreateEventForm
+from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm, CommentForm, CreateEventForm, AnnouncementForm
 
 bp = Blueprint('main', __name__)
 
 EVENTS = [
     {
+        "id": 1,
         "title": "Tech Networking Night",
-        "date": "12 Apr",
-        "time": "6:00 PM",
+        "date": "2026-04-12",
+        "time": "18:00",
         "location": "Perth CBD",
         "description": "Meet developers, designers, and founders for an evening of networking and startup conversations.",
         "category": "Tech",
@@ -16,9 +17,10 @@ EVENTS = [
         "coords": [-31.9523, 115.8613],
     },
     {
+        "id": 2,
         "title": "Beginner Yoga in the Park",
-        "date": "13 Apr",
-        "time": "8:00 AM",
+        "date": "2026-04-13",
+        "time": "08:00",
         "location": "Kings Park",
         "description": "A relaxed outdoor yoga session for beginners. Bring a mat, water bottle, and a friend.",
         "category": "Wellness",
@@ -27,9 +29,10 @@ EVENTS = [
         "coords": [-31.9617, 115.8327],
     },
     {
+        "id": 3,
         "title": "Startup Pitch Evening",
-        "date": "15 Apr",
-        "time": "7:00 PM",
+        "date": "2026-04-15",
+        "time": "19:00",
         "location": "Subiaco",
         "description": "Watch early-stage founders pitch ideas, connect with mentors, and explore local startup opportunities.",
         "category": "Business",
@@ -38,9 +41,10 @@ EVENTS = [
         "coords": [-31.9478, 115.8233],
     },
     {
+        "id": 4,
         "title": "Sunset Beach Meetup",
-        "date": "16 Apr",
-        "time": "5:30 PM",
+        "date": "2026-04-16",
+        "time": "17:30",
         "location": "Cottesloe Beach",
         "description": "Casual beach meetup with games, snacks, and a chance to make new friends while watching the sunset.",
         "category": "Social",
@@ -53,6 +57,12 @@ EVENTS = [
 MOCK_COMMENTS = {}
 MOCK_COMMENT_ID_COUNTER = 1
 
+MOCK_ANNOUNCEMENTS = {}
+MOCK_EVENT_ID_COUNTER = 5
+
+MOCK_COMMENTS = {}
+MOCK_COMMENT_ID_COUNTER = 1
+
 
 @bp.route('/')
 @bp.route('/index')
@@ -61,10 +71,12 @@ def index():
 
 @bp.route('/event/<int:event_id>', methods=['GET', 'POST'])
 def event_detail(event_id):
-    if event_id < 0 or event_id >= len(EVENTS):
+    event = next((e for e in EVENTS if e['id'] == event_id), None)
+    if not event:
         flash('Event not found', 'danger')
         return redirect(url_for('main.index'))
-    event = EVENTS[event_id]
+    
+    is_creator = any(my_ev['id'] == event_id for my_ev in MOCK_MY_EVENTS)
     
     global MOCK_COMMENT_ID_COUNTER
     form = CommentForm()
@@ -85,10 +97,17 @@ def event_detail(event_id):
     
     # Get comments and sort by likes descending
     event_comments = MOCK_COMMENTS.get(event_id, [])
-    # Sort out of place
     sorted_comments = sorted(event_comments, key=lambda c: c['likes'], reverse=True)
     
-    return render_template('event_detail.html', title=event['title'], event=event, event_id=event_id, form=form, comments=sorted_comments)
+    # Get announcements and sort by id descending (newest first)
+    event_announcements = MOCK_ANNOUNCEMENTS.get(event_id, [])
+    sorted_announcements = sorted(event_announcements, key=lambda a: a['id'], reverse=True)
+    
+    announcement_form = AnnouncementForm()
+    
+    return render_template('event_detail.html', title=event['title'], event=event, event_id=event_id, 
+                           form=form, comments=sorted_comments, is_creator=is_creator, 
+                           announcements=sorted_announcements, announcement_form=announcement_form)
 
 @bp.route('/event/<int:event_id>/comment/<int:comment_id>/like', methods=['POST'])
 def like_comment(event_id, comment_id):
@@ -98,6 +117,121 @@ def like_comment(event_id, comment_id):
             c['likes'] += 1
             break
     return redirect(url_for('main.event_detail', event_id=event_id))
+
+@bp.route('/event/<int:event_id>/comment/<int:comment_id>/delete', methods=['POST'])
+def delete_comment(event_id, comment_id):
+    if not any(my_ev['id'] == event_id for my_ev in MOCK_MY_EVENTS):
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+    
+    event_comments = MOCK_COMMENTS.get(event_id, [])
+    MOCK_COMMENTS[event_id] = [c for c in event_comments if c['id'] != comment_id]
+    flash('Comment deleted.', 'info')
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
+MOCK_ANNOUNCEMENT_ID_COUNTER = 1
+
+@bp.route('/event/<int:event_id>/announcement/create', methods=['POST'])
+def create_announcement(event_id):
+    if not any(my_ev['id'] == event_id for my_ev in MOCK_MY_EVENTS):
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+        
+    global MOCK_ANNOUNCEMENT_ID_COUNTER
+    form = AnnouncementForm()
+    if form.validate_on_submit():
+        if event_id not in MOCK_ANNOUNCEMENTS:
+            MOCK_ANNOUNCEMENTS[event_id] = []
+        MOCK_ANNOUNCEMENTS[event_id].append({
+            "id": MOCK_ANNOUNCEMENT_ID_COUNTER,
+            "content": form.content.data
+        })
+        MOCK_ANNOUNCEMENT_ID_COUNTER += 1
+        flash('Announcement added!', 'success')
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
+@bp.route('/event/<int:event_id>/announcement/<int:ann_id>/delete', methods=['POST'])
+def delete_announcement(event_id, ann_id):
+    if not any(my_ev['id'] == event_id for my_ev in MOCK_MY_EVENTS):
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+        
+    announcements = MOCK_ANNOUNCEMENTS.get(event_id, [])
+    MOCK_ANNOUNCEMENTS[event_id] = [a for a in announcements if a['id'] != ann_id]
+    flash('Announcement deleted.', 'info')
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
+@bp.route('/event/<int:event_id>/edit', methods=['GET', 'POST'])
+def edit_event(event_id):
+    if not any(my_ev['id'] == event_id for my_ev in MOCK_MY_EVENTS):
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('main.profile'))
+        
+    event = next((e for e in EVENTS if e['id'] == event_id), None)
+    if not event:
+        flash('Event not found', 'danger')
+        return redirect(url_for('main.profile'))
+        
+    form = CreateEventForm()
+    if form.validate_on_submit():
+        price_val = form.price_label.data.strip()
+        if price_val == "0" or price_val.lower() == "free":
+            price_label = "Free"
+            price_type = "free"
+        else:
+            price_label = price_val if "$" in price_val else f"${price_val}"
+            price_type = "paid"
+            
+        event['title'] = form.title.data
+        event['date'] = form.date.data
+        event['time'] = form.time.data
+        event['location'] = form.location.data
+        event['description'] = form.description.data
+        event['category'] = form.category.data
+        event['price_label'] = price_label
+        event['price_type'] = price_type
+        event['coords'] = [float(form.lat.data), float(form.lng.data)]
+        
+        # update mock my events
+        for my_ev in MOCK_MY_EVENTS:
+            if my_ev['id'] == event_id:
+                my_ev['event'] = form.title.data
+                my_ev['date'] = form.date.data
+                my_ev['location'] = form.location.data
+                break
+                
+        flash('Event updated successfully!', 'success')
+        return redirect(url_for('main.profile'))
+        
+    if request.method == 'GET':
+        form.title.data = event['title']
+        form.date.data = event['date']
+        form.time.data = event['time']
+        form.location.data = event['location']
+        form.category.data = event['category']
+        form.price_label.data = "0" if event['price_label'] == "Free" else event['price_label'].replace('$', '')
+        form.description.data = event['description']
+        form.lat.data = event['coords'][0]
+        form.lng.data = event['coords'][1]
+        
+    return render_template('create_event.html', title='Edit Event', form=form, is_edit=True)
+
+@bp.route('/event/<int:event_id>/delete', methods=['POST'])
+def delete_event(event_id):
+    if not any(my_ev['id'] == event_id for my_ev in MOCK_MY_EVENTS):
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('main.profile'))
+        
+    global EVENTS, MOCK_MY_EVENTS, MOCK_ANNOUNCEMENTS, MOCK_COMMENTS
+    EVENTS = [e for e in EVENTS if e['id'] != event_id]
+    MOCK_MY_EVENTS = [m for m in MOCK_MY_EVENTS if m['id'] != event_id]
+    if event_id in MOCK_ANNOUNCEMENTS:
+        del MOCK_ANNOUNCEMENTS[event_id]
+    if event_id in MOCK_COMMENTS:
+        del MOCK_COMMENTS[event_id]
+        
+    flash('Event deleted.', 'success')
+    return redirect(url_for('main.profile'))
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -143,28 +277,40 @@ MOCK_MY_EVENTS = []
 
 @bp.route('/event/create', methods=['GET', 'POST'])
 def create_event():
+    global MOCK_EVENT_ID_COUNTER
     form = CreateEventForm()
     if form.validate_on_submit():
+        price_val = form.price_label.data.strip()
+        if price_val == "0" or price_val.lower() == "free":
+            price_label = "Free"
+            price_type = "free"
+        else:
+            price_label = price_val if "$" in price_val else f"${price_val}"
+            price_type = "paid"
+            
         event_dict = {
+            "id": MOCK_EVENT_ID_COUNTER,
             "title": form.title.data,
             "date": form.date.data,
             "time": form.time.data,
             "location": form.location.data,
             "description": form.description.data,
             "category": form.category.data,
-            "price_label": form.price_label.data,
-            "price_type": "paid" if ("$" in form.price_label.data or form.price_label.data.lower() != "free") else "free",
+            "price_label": price_label,
+            "price_type": price_type,
             "coords": [float(form.lat.data), float(form.lng.data)]
         }
         EVENTS.append(event_dict)
         MOCK_MY_EVENTS.append({
+            "id": MOCK_EVENT_ID_COUNTER,
             "event": form.title.data,
             "date": form.date.data,
             "location": form.location.data
         })
+        MOCK_EVENT_ID_COUNTER += 1
         flash('Event created successfully!', 'success')
         return redirect(url_for('main.profile'))
-    return render_template('create_event.html', title='Create Event', form=form)
+    return render_template('create_event.html', title='Create Event', form=form, is_edit=False)
 
 
 @bp.route('/profile', methods=['GET', 'POST'])
