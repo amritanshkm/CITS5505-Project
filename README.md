@@ -53,4 +53,36 @@ The application is an **Event Finder & Sharing Platform** that allows users to c
    The application will be accessible at `http://127.0.0.1:5000/`.
 
 ## Running the Tests
-*Instructions for running tests (Unit and Selenium) will be added here once the test suite is built.*
+
+To adhere to robust software engineering standards and the project rubric, we have established a comprehensive test suite covering both Backend Logic and User Interface Automation. Our tests are orchestrated using `pytest`.
+
+### 1. Backend Unit Tests
+We have built **5 Unit Tests** that instantiate an isolated in-memory SQLite database (`sqlite:///:memory:`) to verify the behavior of backend models and routing.
+
+Tests included:
+- Verifying the mathematical integrity of the salted password hashing function (`test_password_hashing`).
+- Verifying successful Commit to db on User Registration (`test_register_commits_to_db`).
+- Ensuring `WTForms` correctly intercepts duplicate email registrations via `ValidationError` (`test_register_duplicate_email_fails`).
+- Handling Flask-Login session management correctly upon login (`test_login_success_handles_session`).
+- Correct rejection of invalid login credentials (`test_login_failure_bad_password`).
+
+**To run the Unit Tests:**
+```bash
+python -m pytest tests/test_auth.py
+```
+
+### 2. Live Server UI Automation (Selenium)
+We have implemented **5 E2E GUI Automation Tests** that utilize the Headless Chrome WebDriver to interact with our application precisely as a human being would.
+
+Tests included:
+- Validation of Site Layout & Title (`test_home_page_title`).
+- Intercepting empty login attempts via frontend JS Validation (`test_login_empty_form_validation`).
+- Creating randomized credentials and driving through the Registration flow via Keyboard simulation (`test_register_flow_e2e`).
+- E2E flow driving through Login and confirming Dynamic Navbar state shift post-authentication (`test_login_flow_e2e`).
+- Explicit endpoint hijacking attempt (`/profile`) being intercepted by `@login_required` bouncing the user out (`test_protected_route_rejection`).
+
+**To run the Selenium Tests:**
+*Ensure your Flask Live Server is running locally on port 5000 before executing these tests.*
+```bash
+python -m pytest tests/test_selenium.py
+```
