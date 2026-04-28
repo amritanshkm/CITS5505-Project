@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField, HiddenField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
 
 class ProfileUpdateForm(FlaskForm):
@@ -45,3 +45,16 @@ class CommentForm(FlaskForm):
         Length(max=500, message="Comment cannot be more than 500 characters.")
     ])
     submit = SubmitField('Post')
+
+class CreateEventForm(FlaskForm):
+    title = StringField('Event Title', validators=[DataRequired(), Length(max=100)])
+    date = StringField('Date', render_kw={"type": "date"}, validators=[DataRequired()])
+    time = StringField('Time', render_kw={"type": "time"}, validators=[DataRequired()])
+    location = StringField('Location', validators=[DataRequired(), Length(max=100)])
+    lat = HiddenField('Latitude', default="-31.9523")
+    lng = HiddenField('Longitude', default="115.8613")
+    category = SelectField('Category', choices=[('Tech', 'Tech'), ('Wellness', 'Wellness'), ('Business', 'Business'), ('Social', 'Social'), ('Other', 'Other')], validators=[DataRequired()])
+
+    price_label = StringField('Price (e.g. Free or $10)', validators=[DataRequired(), Length(max=20)])
+    description = TextAreaField('Description', validators=[DataRequired(), Length(max=1000)])
+    submit = SubmitField('Create Event')
