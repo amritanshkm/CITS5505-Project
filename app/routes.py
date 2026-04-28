@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm, CommentForm
+from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm, CommentForm, CreateEventForm
 
 bp = Blueprint('main', __name__)
 
@@ -139,6 +139,34 @@ MOCK_LIKES = [
     {"event": "Sunset Beach Meetup", "date": "16 Apr, 2026", "location": "Cottesloe Beach"}
 ]
 
+MOCK_MY_EVENTS = []
+
+@bp.route('/event/create', methods=['GET', 'POST'])
+def create_event():
+    form = CreateEventForm()
+    if form.validate_on_submit():
+        event_dict = {
+            "title": form.title.data,
+            "date": form.date.data,
+            "time": form.time.data,
+            "location": form.location.data,
+            "description": form.description.data,
+            "category": form.category.data,
+            "price_label": form.price_label.data,
+            "price_type": "paid" if ("$" in form.price_label.data or form.price_label.data.lower() != "free") else "free",
+            "coords": [float(form.lat.data), float(form.lng.data)]
+        }
+        EVENTS.append(event_dict)
+        MOCK_MY_EVENTS.append({
+            "event": form.title.data,
+            "date": form.date.data,
+            "location": form.location.data
+        })
+        flash('Event created successfully!', 'success')
+        return redirect(url_for('main.profile'))
+    return render_template('create_event.html', title='Create Event', form=form)
+
+
 @bp.route('/profile', methods=['GET', 'POST'])
 def profile():
     profile_form = ProfileUpdateForm(prefix='profile')
@@ -164,4 +192,5 @@ def profile():
                            password_form=password_form,
                            user=MOCK_USER,
                            collections=MOCK_COLLECTIONS,
-                           likes=MOCK_LIKES)
+                           likes=MOCK_LIKES,
+                           my_events=MOCK_MY_EVENTS)
