@@ -38,3 +38,10 @@ class RegistrationForm(FlaskForm):
         EqualTo('password', message="Passwords must match.")
     ])
     submit = SubmitField('Register')
+
+class CommentForm(FlaskForm):
+    comment = StringField('Add a comment...', validators=[
+        DataRequired(), 
+        Length(max=500, message="Comment cannot be more than 500 characters.")
+    ])
+    submit = SubmitField('Post')
