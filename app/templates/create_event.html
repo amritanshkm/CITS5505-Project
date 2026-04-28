@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center py-4">
+    <div class="col-md-8 col-lg-8">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-body p-5">
+                <h2 class="text-center mb-4 fw-bold text-primary">Create New Event</h2>
+                <form action="" method="post" id="createEventForm" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            {{ form.title.label(class="form-label fw-semibold") }}
+                            {{ form.title(class="form-control form-control-lg", placeholder="e.g. Weekly Tech Meetup") }}
+                            {% for error in form.title.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.date.label(class="form-label fw-semibold") }}
+                            {{ form.date(class="form-control form-control-lg") }}
+                            {% for error in form.date.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.time.label(class="form-label fw-semibold") }}
+                            {{ form.time(class="form-control form-control-lg") }}
+                            {% for error in form.time.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            {{ form.location.label(class="form-label fw-semibold") }}
+                            {{ form.location(class="form-control form-control-lg", id="location", placeholder="e.g. Perth CBD or click on map") }}
+                            {% for error in form.location.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                            <small class="text-muted d-block mb-2 mt-1">You can click or drag the marker on the map to autofill the address and strictly bind the coordinates.</small>
+                            <div id="eventMap" style="height: 300px; width: 100%; border-radius: 10px;" class="shadow-sm border"></div>
+                            {{ form.lat(id="lat") }}
+                            {{ form.lng(id="lng") }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.category.label(class="form-label fw-semibold") }}
+                            {{ form.category(class="form-select form-select-lg") }}
+                            {% for error in form.category.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.price_label.label(class="form-label fw-semibold") }}
+                            {{ form.price_label(class="form-control form-control-lg", placeholder="Free or $10") }}
+                            {% for error in form.price_label.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            {{ form.description.label(class="form-label fw-semibold") }}
+                            {{ form.description(class="form-control form-control-lg", rows="4", placeholder="Describe your event...") }}
+                            {% for error in form.description.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('main.profile') }}" class="btn btn-light btn-lg rounded-pill fw-bold px-4">Cancel</a>
+                        {{ form.submit(class="btn btn-primary btn-lg rounded-pill fw-bold px-5") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var initialLat = document.getElementById('lat').value || -31.9523;
+            var initialLng = document.getElementById('lng').value || 115.8613;
+            
+            var map = L.map('eventMap').setView([initialLat, initialLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            var marker = L.marker([initialLat, initialLng], {draggable: true}).addTo(map);
+
+            function updateInputs(lat, lng) {
+                document.getElementById('lat').value = lat;
+                document.getElementById('lng').value = lng;
+                
+                // Simple reverse geocoding via Nominatim
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data && data.display_name) {
+                            // Extract a shorter and cleaner version of the address
+                            let addr = data.address;
+                            let shortAddr = [];
+                            if (addr.amenity || addr.road) shortAddr.push(addr.amenity || addr.road);
+                            if (addr.suburb || addr.city) shortAddr.push(addr.suburb || addr.city);
+                            
+                            document.getElementById('location').value = shortAddr.join(', ') || data.display_name;
+                        }
+                    })
+                    .catch(err => console.log('Geocoding error:', err));
+            }
+
+            marker.on('dragend', function(e) {
+                var position = marker.getLatLng();
+                updateInputs(position.lat, position.lng);
+            });
+
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                updateInputs(e.latlng.lat, e.latlng.lng);
+            });
+        });
+    </script>
+{% endblock %}
