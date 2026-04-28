@@ -7,6 +7,18 @@ class ProfileUpdateForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     submit_profile = SubmitField('Update Profile')
 
+    def validate_nickname(self, nickname):
+        if nickname.data != current_user.nickname:
+            user = User.query.filter_by(nickname=nickname.data).first()
+            if user:
+                raise ValidationError('Please use a different nickname.')
+
+    def validate_email(self, email):
+        if email.data != current_user.email:
+            user = User.query.filter_by(email=email.data).first()
+            if user:
+                raise ValidationError('Please use a different email address.')
+
 class ChangePasswordForm(FlaskForm):
     old_password = PasswordField('Current Password', validators=[DataRequired()])
     new_password = PasswordField('New Password', validators=[
@@ -19,7 +31,9 @@ class ChangePasswordForm(FlaskForm):
     ])
     submit_password = SubmitField('Change Password')
 
-from wtforms.validators import DataRequired, Email, EqualTo, Length
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
+from app.models import User
+from flask_login import current_user
 
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -27,7 +41,7 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Sign In')
 
 class RegistrationForm(FlaskForm):
-    name = StringField('Full Name', validators=[DataRequired()])
+    nickname = StringField('Nickname', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[
         DataRequired(), 
@@ -38,6 +52,16 @@ class RegistrationForm(FlaskForm):
         EqualTo('password', message="Passwords must match.")
     ])
     submit = SubmitField('Register')
+
+    def validate_nickname(self, nickname):
+        user = User.query.filter_by(nickname=nickname.data).first()
+        if user:
+            raise ValidationError('Please use a different nickname.')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('Please use a different email address.')
 
 class CommentForm(FlaskForm):
     comment = StringField('Add a comment...', validators=[
