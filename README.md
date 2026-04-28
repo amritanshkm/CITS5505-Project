@@ -65,7 +65,13 @@ Tests included:
 - Ensuring `WTForms` correctly intercepts duplicate email registrations via `ValidationError` (`test_register_duplicate_email_fails`).
 - Handling Flask-Login session management correctly upon login (`test_login_success_handles_session`).
 - Correct rejection of invalid login credentials (`test_login_failure_bad_password`).
-- Executing robust CRUD state lifecycle changes over the `Event` Model (`tests/test_events.py`), including ORM cascades over `Comment`, `Announcement` creation, and asserting Many-to-Many nested queries (like Bookmarks) update successfully.
+- **Executing robust CRUD data flows over the `Event` Model (`tests/test_events.py`)**: Operating entirely inside an isolated, high-speed in-memory database, this script acts as an automated user to verify edge-to-edge backend safety:
+  1. **Create Account**: Bootstraps a dummy User account robustly into the test DB.
+  2. **Create Event Data**: Simulates filling out a "PyTest Conference" activity payload, inserts it via ORM, and intercepts the DB yield.
+  3. **Verification**: Asserts coordinate mappings function properly upon retrieval.
+  4. **Update DB**: Manually alters the event title, fires a `commit()`, and verifies the DB snapshot changed correctly.
+  5. **Simulate M2M Interactions**: Attaches Comments, Announcements, and Bookmarks to simulate Phase 4 N:N traffic.
+  6. **Wipe State**: Invokes `db.session.delete()` to safely demolish all related assets via SQL cascade.
 
 **To run the Unit Tests:**
 ```bash
