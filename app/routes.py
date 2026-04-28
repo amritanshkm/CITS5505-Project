@@ -86,6 +86,7 @@ def event_detail(event_id):
             
         new_comment = {
             "id": MOCK_COMMENT_ID_COUNTER,
+            "user_id": MOCK_USER.get("id", 1),
             "user": MOCK_USER["nickname"],
             "content": form.comment.data,
             "likes": 0
@@ -107,7 +108,8 @@ def event_detail(event_id):
     
     return render_template('event_detail.html', title=event['title'], event=event, event_id=event_id, 
                            form=form, comments=sorted_comments, is_creator=is_creator, 
-                           announcements=sorted_announcements, announcement_form=announcement_form)
+                           announcements=sorted_announcements, announcement_form=announcement_form,
+                           current_user_id=MOCK_USER.get("id", 1))
 
 @bp.route('/event/<int:event_id>/comment/<int:comment_id>/like', methods=['POST'])
 def like_comment(event_id, comment_id):
@@ -120,7 +122,16 @@ def like_comment(event_id, comment_id):
 
 @bp.route('/event/<int:event_id>/comment/<int:comment_id>/delete', methods=['POST'])
 def delete_comment(event_id, comment_id):
-    if not any(my_ev['id'] == event_id for my_ev in MOCK_MY_EVENTS):
+    is_creator = any(my_ev['id'] == event_id for my_ev in MOCK_MY_EVENTS)
+    event_comments = MOCK_COMMENTS.get(event_id, [])
+    comment_to_del = next((c for c in event_comments if c['id'] == comment_id), None)
+    
+    if not comment_to_del:
+        flash('Comment not found.', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+        
+    is_sender = (comment_to_del.get("user_id") == MOCK_USER.get("id", 1))
+    if not (is_creator or is_sender):
         flash('Unauthorized', 'danger')
         return redirect(url_for('main.event_detail', event_id=event_id))
     
@@ -259,6 +270,7 @@ def logout():
     return redirect(url_for('main.index'))
 
 MOCK_USER = {
+    "id": 1,
     "nickname": "AgileDev",
     "email": "agile@uwa.edu.au"
 }

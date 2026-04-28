@@ -122,7 +122,7 @@
                                                     ❤️ <span class="ms-1">{{ comment.likes }}</span>
                                                 </button>
                                             </form>
-                                            {% if is_creator %}
+                                            {% if is_creator or comment.user_id == current_user_id %}
                                             <form method="POST" action="{{ url_for('main.delete_comment', event_id=event_id, comment_id=comment.id) }}" style="display: inline;" class="ms-2">
                                                 <button type="submit" class="btn btn-sm btn-outline-secondary px-2" style="border-radius: 20px;" title="Delete Comment">
                                                     🗑️
