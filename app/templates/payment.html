@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-dark text-white text-center py-4 rounded-top-4">
+                <h3 class="mb-0 fw-bold">Secure Checkout</h3>
+                <p class="mb-0 mt-2 text-white-50">{{ event.title }}</p>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                    <span class="text-muted fw-semibold">Total Amount Due</span>
+                    <span class="fs-3 fw-bold text-dark">{{ event.price_label }}</span>
+                </div>
+                
+                <form id="paymentForm" method="POST" action="{{ url_for('main.payment', event_id=event.id) }}" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4">
+                        {{ form.card_name.label(class="form-label fw-bold small text-muted text-uppercase") }}
+                        {{ form.card_name(class="form-control form-control-lg", placeholder="John Doe") }}
+                        <div class="invalid-feedback">Please enter the name exactly as it appears on your card.</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form.card_number.label(class="form-label fw-bold small text-muted text-uppercase") }}
+                        <div class="input-group has-validation">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-credit-card-2-front text-secondary"></i></span>
+                            {{ form.card_number(class="form-control form-control-lg border-start-0", placeholder="0000111122223333", id="cardNumber") }}
+                            <div class="invalid-feedback" id="cardNumberError">Card number must be exactly 16 digits.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            {{ form.expiry_date.label(class="form-label fw-bold small text-muted text-uppercase") }}
+                            {{ form.expiry_date(class="form-control form-control-lg", placeholder="MM/YY", id="expiryDate") }}
+                            <div class="invalid-feedback" id="expiryDateError">Must be a valid future date (MM/YY).</div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            {{ form.cvv.label(class="form-label fw-bold small text-muted text-uppercase") }}
+                            <div class="input-group has-validation">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-secondary"></i></span>
+                                {{ form.cvv(class="form-control form-control-lg border-start-0", placeholder="123", id="cvvNumber") }}
+                                <div class="invalid-feedback" id="cvvError">Exactly 3 numeric digits.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid mt-3">
+                        <button type="submit" id="payButton" class="btn btn-primary btn-lg rounded-pill shadow fw-bold transition align-items-center justify-content-center d-flex">
+                            <i class="bi bi-lock-fill me-2" id="btnIcon"></i>
+                            <span id="btnText">Pay Now</span>
+                            <span id="btnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('main.event_detail', event_id=event.id) }}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i> Cancel and return to event</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const payForm = document.getElementById('paymentForm');
+        const cardName = document.getElementById('card_name');
+        const cardNum = document.getElementById('cardNumber');
+        const expDate = document.getElementById('expiryDate');
+        const cvvNum = document.getElementById('cvvNumber');
+        const payBtn = document.getElementById('payButton');
+        const btnText = document.getElementById('btnText');
+        const btnIcon = document.getElementById('btnIcon');
+        const btnSpinner = document.getElementById('btnSpinner');
+
+        // Helpers
+        const isNumeric = (val) => /^\d+$/.test(val);
+        const formatExp = (val) => /^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(val);
+
+        // Validation Listeners
+        cardNum.addEventListener('input', function(e) {
+            let val = e.target.value.replace(/\s+/g, '');
+            if (val.length === 16 && isNumeric(val)) {
+                cardNum.classList.remove('is-invalid');
+                cardNum.classList.add('is-valid');
+            } else {
+                cardNum.classList.remove('is-valid');
+                if (val.length > 0) cardNum.classList.add('is-invalid');
+            }
+        });
+
+        expDate.addEventListener('blur', function(e) {
+            let val = e.target.value.trim();
+            if(!val) return;
+            
+            let isValid = false;
+            if (formatExp(val)) {
+                let parts = val.includes('/') ? val.split('/') : [val.substring(0,2), val.substring(2,4)];
+                let inputMonth = parseInt(parts[0], 10);
+                let inputYear = parseInt(parts[1], 10) + 2000; 
+                
+                let today = new Date();
+                let currentMonth = today.getMonth() + 1;
+                let currentYear = today.getFullYear();
+                
+                if (inputYear > currentYear || (inputYear === currentYear && inputMonth >= currentMonth)) {
+                    isValid = true;
+                }
+            }
+            
+            if (isValid) {
+                expDate.classList.remove('is-invalid');
+                expDate.classList.add('is-valid');
+            } else {
+                expDate.classList.remove('is-valid');
+                expDate.classList.add('is-invalid');
+            }
+        });
+
+        cvvNum.addEventListener('input', function(e) {
+            let val = e.target.value;
+            if (val.length === 3 && isNumeric(val)) {
+                cvvNum.classList.remove('is-invalid');
+                cvvNum.classList.add('is-valid');
+            } else {
+                cvvNum.classList.remove('is-valid');
+                if (val.length > 0) cvvNum.classList.add('is-invalid');
+            }
+        });
+
+        cardName.addEventListener('input', function(e) {
+            if(e.target.value.trim().length > 0) {
+                cardName.classList.remove('is-invalid');
+            } else {
+                cardName.classList.add('is-invalid');
+            }
+        });
+
+        payForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Force trigger validation checks
+            cardName.dispatchEvent(new Event('input'));
+            cardNum.dispatchEvent(new Event('input'));
+            expDate.dispatchEvent(new Event('blur'));
+            cvvNum.dispatchEvent(new Event('input'));
+            
+            const checks = [
+                !cardName.classList.contains('is-invalid') && cardName.value.trim().length > 0,
+                cardNum.classList.contains('is-valid'),
+                expDate.classList.contains('is-valid'),
+                cvvNum.classList.contains('is-valid')
+            ];
+
+            if (checks.every(c => c === true)) {
+                // All valid! Trigger the spinner animation
+                payBtn.disabled = true;
+                payBtn.classList.remove('btn-primary');
+                payBtn.classList.add('btn-secondary');
+                btnIcon.classList.add('d-none');
+                btnText.innerText = 'Communicating with Bank...';
+                btnSpinner.classList.remove('d-none');
+                
+                setTimeout(function() {
+                    btnText.innerText = 'Approved! Redirecting...';
+                    payForm.submit();
+                }, 1500);
+            }
+        });
+    });
+</script>
+{% endblock %}
