@@ -58,3 +58,7 @@ class CreateEventForm(FlaskForm):
     price_label = StringField('Price (e.g. Free or $10)', validators=[DataRequired(), Length(max=20)])
     description = TextAreaField('Description', validators=[DataRequired(), Length(max=1000)])
     submit = SubmitField('Create Event')
+
+class AnnouncementForm(FlaskForm):
+    content = TextAreaField('Announcement Content', validators=[DataRequired(), Length(max=1000)])
+    submit = SubmitField('Post Announcement')
