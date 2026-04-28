@@ -58,6 +58,9 @@
                     <button class="nav-link text-start px-4 py-3 fw-semibold d-flex align-items-center" id="v-pills-collections-tab" data-bs-toggle="pill" data-bs-target="#v-pills-collections" type="button" role="tab" aria-controls="v-pills-collections" aria-selected="false">
                         <i class="bi bi-bookmark-star me-3 fs-5"></i> My Bookmarks
                     </button>
+                    <button class="nav-link text-start px-4 py-3 fw-semibold d-flex align-items-center" id="v-pills-orders-tab" data-bs-toggle="pill" data-bs-target="#v-pills-orders" type="button" role="tab" aria-controls="v-pills-orders" aria-selected="false">
+                        <i class="bi bi-ticket-perforated me-3 fs-5"></i> My Orders
+                    </button>
                     <button class="nav-link text-start px-4 py-3 fw-semibold d-flex align-items-center" id="v-pills-likes-tab" data-bs-toggle="pill" data-bs-target="#v-pills-likes" type="button" role="tab" aria-controls="v-pills-likes" aria-selected="false">
                         <i class="bi bi-heart me-3 fs-5"></i> My Likes
                     </button>
@@ -134,6 +137,44 @@
                             <div class="text-center py-5">
                                 <i class="bi bi-bookmark-star text-muted" style="font-size: 3rem;"></i>
                                 <p class="text-muted mt-3 fs-5">You haven't bookmarked any events yet.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- My Orders Tab -->
+                    <div class="tab-pane fade" id="v-pills-orders" role="tabpanel" aria-labelledby="v-pills-orders-tab">
+                        <h4 class="mb-4 text-dark fw-bold border-bottom pb-3">My Orders & Tickets</h4>
+                        {% if orders %}
+                            <div class="row row-cols-1 row-cols-md-2 g-4">
+                            {% for order in orders %}
+                                <div class="col">
+                                    <div class="card h-100 border-0 bg-light rounded-4 shadow-sm hover-shadow transition border-start border-4 border-primary">
+                                        <div class="card-body p-4 d-flex flex-column">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <h5 class="card-title text-dark fw-bold fs-5 mb-0">{{ order.event_title }}</h5>
+                                                <span class="badge bg-primary rounded-pill">{{ order.status }}</span>
+                                            </div>
+                                            <p class="card-text text-secondary small mb-1">
+                                                <strong>Order #:</strong> {{ order.order_id }}
+                                            </p>
+                                            <p class="card-text text-secondary small mb-1">
+                                                <i class="bi bi-calendar3 me-2"></i> {{ order.date }}
+                                            </p>
+                                            <p class="card-text text-secondary small mb-3">
+                                                <i class="bi bi-currency-dollar me-2"></i> {{ order.total }}
+                                            </p>
+                                            <div class="d-grid mt-auto pt-2 border-top border-secondary-subtle">
+                                                <a href="{{ url_for('main.order_detail', order_id=order.order_id) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-semibold mt-2">View Receipt</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-receipt text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-3 fs-5">You haven't placed any orders yet.</p>
                             </div>
                         {% endif %}
                     </div>
