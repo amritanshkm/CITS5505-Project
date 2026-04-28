@@ -2,168 +2,371 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        /* Modern UI Reset & Properties */
+        body {
+            background-color: #f8fafc;
+        }
+        
+        /* Hero Header */
+        .hero-banner {
+            position: relative;
+            height: 480px;
+            /* Dynamic Source via Unsplash mapping the event.category */
+            background: url("https://source.unsplash.com/1600x900/?{{ event.category | urlencode }}") no-repeat center center;
+            background-size: cover;
+            border-bottom-left-radius: 3rem;
+            border-bottom-right-radius: 3rem;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+        
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15,23,42,0.98) 0%, rgba(15,23,42,0.6) 40%, rgba(15,23,42,0.1) 100%);
+            display: flex;
+            align-items: flex-end;
+            padding: 4rem 2rem;
+        }
+        
+        .glass-badge {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: #fff;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        
+        .title-display {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            line-height: 1.1;
+            margin: 1.2rem 0;
+            letter-spacing: -1px;
+        }
+        
+        /* Main Container Grid & Floating Effect */
+        .main-content {
+            margin-top: -4rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .content-card {
+            background: #ffffff;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.06);
+            border: 1px solid rgba(0,0,0,0.02);
+            padding: 3rem;
+        }
+
+        .event-description {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #334155;
+            font-weight: 400;
+        }
+
+        /* Right Column Sticky Sidebar */
+        .sticky-sidebar {
+            position: sticky;
+            top: 2rem;
+        }
+
+        .action-card {
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+            border-radius: 2rem;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+
+        .price-display {
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .map-wrapper {
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: 320px;
+            border: 4px solid white;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Avatars and Chat UI */
+        .avatar-circle {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
+        }
+
+        .chat-bubble {
+            background: #f8fafc;
+            border-radius: 0 1.5rem 1.5rem 1.5rem;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        
+        .chat-pointer {
+            position: absolute;
+            top: 0;
+            left: -10px;
+            width: 0; 
+            height: 0; 
+            border-top: 15px solid #f8fafc; 
+            border-left: 15px solid transparent; 
+        }
+
+        /* Announcements Panel */
+        .announcement-box {
+            background: linear-gradient(145deg, #fffbeb, #fef3c7);
+            border: 1px solid #fde68a;
+            border-left: 6px solid #f59e0b;
+            border-radius: 1.5rem;
+        }
+
+        /* Hover animations */
+        .hover-scale {
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-    <header class="site-header">
-        <div class="brand-block">
-            <p class="eyebrow">{{ event.category }} Event</p>
-            <h1>{{ event.title }}</h1>
-        </div>
-    </header>
-
-    <section class="content-layout">
-        <div class="events-panel">
-            <article 
-                class="card event-card p-4 active-card"
-                data-title="{{ event.title }}"
-                data-category="{{ event.category }}"
-                data-price="{{ event.price_type }}"
-                data-location="{{ event.location }}"
-                data-lat="{{ event.coords[0] }}"
-                data-lng="{{ event.coords[1] }}"
-                style="display: block; cursor: default;"
-            >
-                <div class="section-heading" style="margin-top: 0; padding-top: 0; border: none;">
-                    <h2>Event Details</h2>
+<div class="container-fluid px-0 mb-5 pb-5">
+    <!-- Immersive Hero Banner Section -->
+    <div class="hero-banner">
+        <div class="hero-overlay">
+            <div class="container">
+                <span class="badge rounded-pill glass-badge shadow-sm"><i class="bi bi-tag-fill me-2"></i>{{ event.category }}</span>
+                <h1 class="title-display">{{ event.title }}</h1>
+                <div class="d-flex flex-wrap gap-4 text-white fw-medium fs-5 mt-4 opacity-75">
+                    <div class="d-flex align-items-center"><i class="bi bi-calendar3 me-2 fs-4"></i>{{ event.date }}</div>
+                    <div class="d-flex align-items-center"><i class="bi bi-clock me-2 fs-4"></i>{{ event.time }}</div>
+                    <div class="d-flex align-items-center"><i class="bi bi-geo-alt-fill me-2 fs-4 text-danger"></i>{{ event.location }}</div>
                 </div>
-                
-                <!-- Announcements Section -->
-                {% if announcements or is_creator %}
-                <div class="announcements-section bg-light rounded p-3 mb-4 border-start border-4 border-warning">
-                    <h5 class="fw-bold text-warning-emphasis mb-3">📢 Announcements</h5>
-                    
-                    {% if is_creator %}
-                    <form method="POST" action="{{ url_for('main.create_announcement', event_id=event_id) }}" class="mb-3">
-                        {{ announcement_form.hidden_tag() }}
-                        <div class="d-flex gap-2">
-                            {{ announcement_form.content(class="form-control", placeholder="Post an update for attendees...", rows="1") }}
-                            {{ announcement_form.submit(class="btn btn-warning fw-bold text-dark") }}
-                        </div>
-                    </form>
-                    {% endif %}
+            </div>
+        </div>
+    </div>
 
-                    {% if announcements %}
-                    <ul class="list-group list-group-flush rounded">
-                        {% for ann in announcements %}
-                        <li class="list-group-item bg-transparent px-0 border-bottom-0 mb-2 p-2 rounded shadow-sm" style="background: white !important;">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-dark">{{ ann.content }}</span>
+    <!-- Smart 2-Column Grid Area -->
+    <div class="container main-content">
+        <div class="row g-5">
+            
+            <!-- Left Panel: Deep Reading & Interactions -->
+            <div class="col-xl-7 col-lg-7">
+                <!-- Data injection point for script.js to initialize map automatically -->
+                <div class="content-card mb-4 event-card border-0"
+                     data-title="{{ event.title }}"
+                     data-category="{{ event.category }}"
+                     data-price="{{ event.price_type }}"
+                     data-location="{{ event.location }}"
+                     data-lat="{{ event.coords[0] }}"
+                     data-lng="{{ event.coords[1] }}">
+                    
+                    <h3 class="fw-bold mb-4 text-dark"><i class="bi bi-justify-left text-primary me-2"></i>About Experience</h3>
+                    <p class="event-description mb-5">{{ event.description }}</p>
+
+                    <!-- Advanced Announcements System -->
+                    {% if announcements or is_creator %}
+                    <div class="announcement-box p-4 p-md-5 mb-5 shadow-sm">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="bg-warning text-dark p-2 rounded-3 me-3"><i class="bi bi-megaphone-fill fs-4"></i></div>
+                            <h3 class="fw-bold text-dark mb-0">Live Updates</h3>
+                        </div>
+                        
+                        {% if is_creator %}
+                        <form method="POST" action="{{ url_for('main.create_announcement', event_id=event_id) }}" class="mb-4">
+                            {{ announcement_form.hidden_tag() }}
+                            <div class="input-group input-group-lg shadow-sm rounded-pill p-1 bg-white">
+                                {{ announcement_form.content(class="form-control border-0 bg-transparent ps-4", placeholder="Broadcast a message directly to participants...", rows="1") }}
+                                {{ announcement_form.submit(class="btn btn-warning fw-bold text-dark px-4 rounded-pill m-1 hover-scale") }}
+                            </div>
+                        </form>
+                        {% endif %}
+
+                        {% if announcements %}
+                        <div class="d-flex flex-column gap-3">
+                            {% for ann in announcements %}
+                            <div class="bg-white p-3 px-4 rounded-pill shadow-sm d-flex justify-content-between align-items-center">
+                                <span class="text-dark fw-medium fs-6"><i class="bi bi-dot text-warning fs-4"></i>{{ ann.content }}</span>
                                 {% if is_creator %}
-                                <form method="POST" action="{{ url_for('main.delete_announcement', event_id=event_id, ann_id=ann.id) }}" style="display: inline;">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger ms-2" title="Delete Announcement">🗑️</button>
+                                <form method="POST" action="{{ url_for('main.delete_announcement', event_id=event_id, ann_id=ann.id) }}" class="m-0">
+                                    <button type="submit" class="btn btn-link text-danger p-0 ms-3 hover-scale" title="Delete"><i class="bi bi-x-circle-fill fs-5"></i></button>
                                 </form>
                                 {% endif %}
                             </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <p class="text-muted small mb-0">No announcements yet.</p>
-                    {% endif %}
-                </div>
-                {% endif %}
-                
-                <p class="event-meta" style="font-size: 1.1rem;">
-                    <strong>Date:</strong> {{ event.date }}<br>
-                    <strong>Time:</strong> {{ event.time }}<br>
-                    <strong>Location:</strong> {{ event.location }}<br>
-                    <strong>Price:</strong> {{ event.price_label }}
-                </p>
-
-                <p class="event-description mt-3 mb-4" style="font-size: 1.05rem; line-height: 1.6;">
-                    {{ event.description }}
-                </p>
-                
-                <div class="interaction-bar mt-4 pb-4 border-bottom">
-                    <button class="btn btn-outline-danger" onclick="increaseLike()" style="border-radius: 50px; padding: 0.5rem 1rem;">
-                        ❤️ Like
-                    </button>
-                    <span id="likeCount" class="ms-2 me-4 fw-bold">0</span>
-
-                    <button class="btn btn-outline-primary" style="padding: 0.5rem 1.5rem;">
-                        🔖 Bookmark
-                    </button>
-                </div>
-
-                <div class="payment-details mt-4 mb-4 p-4 bg-light rounded border">
-                    <h4 class="mb-3"><i class="bi bi-ticket-perforated me-2"></i>Registration & Payment</h4>
-                    {% if event.price_type == 'free' %}
-                        <p class="text-success fw-bold fs-5 mb-3">{{ event.price_label }}</p>
-                        <form method="POST" action="{{ url_for('main.join_event', event_id=event.id) }}">
-                            <button type="submit" class="btn btn-success btn-lg px-4 rounded-pill shadow-sm">
-                                <i class="bi bi-check-circle me-1"></i> Join Event
-                            </button>
-                        </form>
-                    {% else %}
-                        <p class="text-dark fw-bold fs-5 mb-3">{{ event.price_label }}</p>
-                        <a href="{{ url_for('main.payment', event_id=event.id) }}" class="btn btn-primary btn-lg px-4 rounded-pill shadow-sm">
-                            <i class="bi bi-credit-card me-1"></i> Proceed to Payment
-                        </a>
-                    {% endif %}
-                </div>
-
-                <hr class="my-5">
-                
-                <section class="comments-section" id="comments">
-                    <h3 class="mb-4">Comments</h3>
-                    
-                    <div class="comment-form-container mb-5 p-4 bg-light rounded">
-                        <h5>Leave a Comment</h5>
-                        <form method="POST" action="">
-                            {{ form.hidden_tag() }}
-                            <div class="form-group mb-3">
-                                {{ form.comment(class="form-control", rows="3", placeholder="Write your comment here (Emojis allowed!)") }}
-                                {% for error in form.comment.errors %}
-                                    <span class="text-danger">{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                            {{ form.submit(class="btn btn-primary") }}
-                        </form>
-                    </div>
-
-                    <div class="comments-list">
-                        {% if comments %}
-                            {% for comment in comments %}
-                                <div class="comment-item p-3 mb-3 border rounded shadow-sm">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 class="mb-0 fw-bold">{{ comment.user }}</h6>
-                                        <div class="d-flex align-items-center">
-                                            <form method="POST" action="{{ url_for('main.like_comment', event_id=event_id, comment_id=comment.id) }}" style="display: inline;">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 20px;">
-                                                    ❤️ <span class="ms-1">{{ comment.likes }}</span>
-                                                </button>
-                                            </form>
-                                            {% if is_creator or comment.user_id == current_user_id %}
-                                            <form method="POST" action="{{ url_for('main.delete_comment', event_id=event_id, comment_id=comment.id) }}" style="display: inline;" class="ms-2">
-                                                <button type="submit" class="btn btn-sm btn-outline-secondary px-2" style="border-radius: 20px;" title="Delete Comment">
-                                                    🗑️
-                                                </button>
-                                            </form>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <p class="mb-0 text-dark" style="white-space: pre-wrap;">{{ comment.content }}</p>
-                                </div>
                             {% endfor %}
+                        </div>
                         {% else %}
-                            <p class="text-muted">No comments yet. Be the first to comment!</p>
+                        <p class="text-muted fst-italic mb-0 ps-2">No active announcements broadcasted yet.</p>
                         {% endif %}
                     </div>
-                </section>
+                    {% endif %}
 
-                <a href="{{ url_for('main.index') }}" class="btn btn-dark mt-4">&larr; Back to Home</a>
-            </article>
-        </div>
+                    <hr class="my-5" style="border-top: 2px dashed #cbd5e1; opacity: 1;">
 
-        <aside class="map-panel">
-            <div class="section-heading">
-                <h2>Event Map</h2>
-                <p>Location for {{ event.title }}</p>
+                    <!-- Sophisticated Discussion Threads -->
+                    <div class="comments-section" id="comments">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <h3 class="fw-bold text-dark mb-0">Discussions <span class="badge bg-secondary rounded-pill ms-2 fs-6">{{ comments|length }}</span></h3>
+                            <i class="bi bi-chat-heart-fill text-primary fs-3"></i>
+                        </div>
+                        
+                        <!-- Input Box Bubble -->
+                        <div class="bg-light p-4 rounded-4 mb-5 shadow-inner border border-white">
+                            <h6 class="fw-bold mb-3 text-secondary text-uppercase tracking-wider">Leave a thought</h6>
+                            <form method="POST" action="">
+                                {{ form.hidden_tag() }}
+                                <div class="mb-3 position-relative">
+                                    {{ form.comment(class="form-control border-0 shadow-sm rounded-4 p-4", rows="3", placeholder="Start typing here... Emojis encouraged! 😄") }}
+                                    {% for error in form.comment.errors %}
+                                        <div class="text-danger small mt-2 px-2 fw-medium"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="text-end">
+                                    {{ form.submit(class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow hover-scale") }}
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Thread List -->
+                        <div class="d-flex flex-column gap-4">
+                            {% if comments %}
+                                {% for comment in comments %}
+                                    <div class="d-flex gap-4">
+                                        <div class="avatar-circle shadow-sm">{{ comment.user[0] | upper }}</div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-baseline mb-2">
+                                                <span class="fw-bold text-dark me-2 fs-5">{{ comment.user }}</span>
+                                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill small">Participant</span>
+                                            </div>
+                                            <div class="chat-bubble shadow-sm mt-1">
+                                                <div class="chat-pointer"></div>
+                                                <p class="mb-0 text-secondary lh-lg fs-6" style="white-space: pre-wrap;">{{ comment.content }}</p>
+                                                
+                                                <!-- Action Buttons inside Bubble -->
+                                                <div class="d-flex justify-content-end align-items-center mt-3 pt-3 border-top gap-2">
+                                                    <form method="POST" action="{{ url_for('main.like_comment', event_id=event_id, comment_id=comment.id) }}" class="m-0">
+                                                        <button type="submit" class="btn btn-sm btn-white text-danger px-3 border shadow-sm rounded-pill hover-scale fw-bold">
+                                                            <i class="bi bi-heart-fill me-1"></i> {{ comment.likes }}
+                                                        </button>
+                                                    </form>
+                                                    {% if is_creator or comment.user_id == current_user_id %}
+                                                    <form method="POST" action="{{ url_for('main.delete_comment', event_id=event_id, comment_id=comment.id) }}" class="m-0 ms-2">
+                                                        <button type="submit" class="btn btn-sm btn-light text-secondary rounded-pill shadow-sm hover-scale px-3" title="Delete">
+                                                            <i class="bi bi-trash3-fill"></i>
+                                                        </button>
+                                                    </form>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-5 bg-white border border-dashed rounded-4">
+                                    <i class="bi bi-chat-square-quote text-slate-300" style="font-size: 3.5rem; color: #cbd5e1;"></i>
+                                    <p class="text-muted mt-3 mb-0 fs-5 fw-medium">The room is quiet. Be the first to break the ice!</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-5 pt-3">
+                    <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill px-5 py-3 fw-bold hover-scale">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Event Board
+                    </a>
+                </div>
             </div>
-            <div id="map"></div>
-        </aside>
-    </section>
+
+            <!-- Right Panel: Sticky Map & Ticket Controller -->
+            <div class="col-xl-5 col-lg-5">
+                <div class="sticky-sidebar d-flex flex-column gap-4">
+                    
+                    <!-- Checkout Card -->
+                    <div class="action-card text-center">
+                        <h4 class="fw-bold mb-1 text-dark text-uppercase tracking-wider fs-6">Registration</h4>
+                        <p class="text-muted mb-4 pb-3 border-bottom">Secure your spot for this amazing experience.</p>
+                        
+                        <div class="price-display mb-4">
+                            {% if event.price_type == 'free' %}
+                                <span class="text-success" style="-webkit-text-fill-color: #10b981;">Free Access</span>
+                            {% else %}
+                                {{ event.price_label }}
+                            {% endif %}
+                        </div>
+
+                        {% if event.price_type == 'free' %}
+                        <form method="POST" action="{{ url_for('main.join_event', event_id=event.id) }}">
+                            <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill shadow-lg fw-bold py-3 mb-4 hover-scale">
+                                <i class="bi bi-ticket-perforated-fill me-2 fs-5"></i> Claim Free Ticket
+                            </button>
+                        </form>
+                        {% else %}
+                        <a href="{{ url_for('main.payment', event_id=event.id) }}" class="btn btn-primary btn-lg w-100 rounded-pill shadow-lg fw-bold py-3 mb-4 hover-scale">
+                            <i class="bi bi-credit-card-fill me-2 fs-5"></i> Proceed to Checkout
+                        </a>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-center gap-3">
+                            <button class="btn btn-light border rounded-pill px-4 py-2 text-danger fw-bold shadow-sm hover-scale" onclick="increaseLike()">
+                                <i class="bi bi-suit-heart-fill me-1 fs-5"></i> <span id="likeCount" class="ms-1">0</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Map Panel -->
+                    <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-relative">
+                        <div class="position-absolute top-0 start-0 w-100 z-1 p-3 bg-white bg-opacity-75" style="backdrop-filter: blur(10px);">
+                            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Event Map Navigation</h6>
+                            <p class="text-muted small mb-0 mt-1" style="line-height: 1.2;">{{ event.location }}</p>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="map-wrapper rounded-0 border-0" style="height: 380px;">
+                                <div id="map"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -176,14 +379,14 @@
             document.getElementById("likeCount").innerText = likes;
         }
 
-        // Focus map onto the event automatically
+        // Initialize Map
         document.addEventListener('DOMContentLoaded', () => {
             const card = document.querySelector('.event-card');
             setTimeout(() => {
                 if (typeof focusEventOnMap === 'function') {
-                    focusEventOnMap(card);
+                    focusEventOnMap(card); // Utilizes the attributes placed in event-card data-tags
                 }
-            }, 300);
+            }, 400); // Slight delay for smooth DOM render
         });
     </script>
 {% endblock %}
