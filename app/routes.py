@@ -48,12 +48,16 @@ def event_detail(event_id):
     if current_user.is_authenticated:
         user_liked = event in current_user.liked_events
         user_bookmarked = event in current_user.bookmarked_events
+        
+    spots_left = None
+    if event.capacity is not None:
+        spots_left = max(0, event.capacity - event.orders.count())
     
     return render_template('event_detail.html', title=event.title, event=event, event_id=event_id, 
                            form=form, comments=sorted_comments, is_creator=is_creator, 
                            announcements=sorted_announcements, announcement_form=announcement_form,
                            current_user_id=current_user.id if current_user.is_authenticated else None,
-                           user_liked=user_liked, user_bookmarked=user_bookmarked)
+                           user_liked=user_liked, user_bookmarked=user_bookmarked, spots_left=spots_left)
 
 @bp.route('/event/<int:event_id>/comment/<int:comment_id>/like', methods=['POST'])
 @login_required
@@ -179,6 +183,7 @@ def edit_event(event_id):
         event.price_type = price_type
         event.lat = float(form.lat.data)
         event.lng = float(form.lng.data)
+        event.capacity = form.capacity.data
         
         db.session.commit()
         flash('Event updated successfully!', 'success')
@@ -194,6 +199,7 @@ def edit_event(event_id):
         form.description.data = event.description
         form.lat.data = event.lat
         form.lng.data = event.lng
+        form.capacity.data = event.capacity
         
     return render_template('create_event.html', title='Edit Event', form=form, is_edit=True)
 
@@ -328,6 +334,7 @@ def create_event():
             price_type=price_type,
             lat=float(form.lat.data),
             lng=float(form.lng.data),
+            capacity=form.capacity.data,
             creator_id=current_user.id
         )
         db.session.add(event)

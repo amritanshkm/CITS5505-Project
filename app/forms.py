@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField, HiddenField
-from wtforms.validators import DataRequired, Email, EqualTo, Length
+from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField, HiddenField, IntegerField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange
 
 class ProfileUpdateForm(FlaskForm):
     nickname = StringField('Nickname', validators=[DataRequired(), Length(min=2, max=20)])
@@ -31,7 +31,7 @@ class ChangePasswordForm(FlaskForm):
     ])
     submit_password = SubmitField('Change Password')
 
-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional, NumberRange
 from app.models import User
 from flask_login import current_user
 
@@ -78,7 +78,7 @@ class CreateEventForm(FlaskForm):
     lat = HiddenField('Latitude', default="-31.9523")
     lng = HiddenField('Longitude', default="115.8613")
     category = SelectField('Category', choices=[('Tech', 'Tech'), ('Wellness', 'Wellness'), ('Business', 'Business'), ('Social', 'Social'), ('Other', 'Other')], validators=[DataRequired()])
-
+    capacity = IntegerField('Maximum Capacity (Leave blank for unlimited)', validators=[Optional(), NumberRange(min=1)])
     price_label = StringField('Price (e.g. Free or $10)', validators=[DataRequired(), Length(max=20)])
     description = TextAreaField('Description', validators=[DataRequired(), Length(max=1000)])
     submit = SubmitField('Create Event')

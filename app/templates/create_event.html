@@ -55,14 +55,21 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             {{ form.category.label(class="form-label fw-semibold") }}
                             {{ form.category(class="form-select form-select-lg") }}
                             {% for error in form.category.errors %}
                                 <div class="text-danger small mt-1">{{ error }}</div>
                             {% endfor %}
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
+                            {{ form.capacity.label(class="form-label fw-semibold") }}
+                            {{ form.capacity(class="form-control form-control-lg", placeholder="", type="number", min="1") }}
+                            {% for error in form.capacity.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
                             {{ form.price_label.label(class="form-label fw-semibold") }}
                             {{ form.price_label(class="form-control form-control-lg", placeholder="Free or $10") }}
                             {% for error in form.price_label.errors %}

@@ -25,7 +25,7 @@ Represents the actual application events tied heavily to location/GIS approximat
 * `location`: Text
 * `lat`: Float
 * `lng`: Float
-* `capacity`: Integer (Used for non-trivial full capacity checks)
+* `capacity`: Integer (Nullable). Allows the creator to specify a maximum number of participants. The system automatically restricts `join_event` and `payment` endpoints, disabling the UI and denying transactions when `event.orders.count() >= capacity`.
 * `creator_id`: Integer, Foreign Key (`user.id`)
 
 ### 3. `Announcement` Model
