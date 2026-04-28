@@ -62,3 +62,11 @@ class CreateEventForm(FlaskForm):
 class AnnouncementForm(FlaskForm):
     content = TextAreaField('Announcement Content', validators=[DataRequired(), Length(max=1000)])
     submit = SubmitField('Post Announcement')
+
+class PaymentForm(FlaskForm):
+    card_name = StringField('Cardholder Name', validators=[DataRequired(), Length(max=100)])
+    card_number = StringField('Card Number', validators=[DataRequired(), Length(min=16, max=16)])
+    expiry_date = StringField('Expiry Date (MM/YY)', validators=[DataRequired(), Length(min=5, max=5)])
+    cvv = StringField('CVV', validators=[DataRequired(), Length(min=3, max=3)])
+    submit = SubmitField('Pay Now')
+
