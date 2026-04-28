@@ -177,10 +177,10 @@
                     {% if comments %}
                         {% for comment in comments %}
                             <div class="d-flex gap-3">
-                                <div class="avatar-circle">{{ comment.user[0] | upper }}</div>
+                                <div class="avatar-circle">{{ comment.author.nickname[0] | upper }}</div>
                                 <div class="flex-grow-1">
                                     <div class="d-flex align-items-center mb-1">
-                                        <span class="fw-bold text-dark me-2">{{ comment.user }}</span>
+                                        <span class="fw-bold text-dark me-2">{{ comment.author.nickname }}</span>
                                     </div>
                                     <div class="chat-bubble shadow-sm">
                                         <p class="mb-0 text-secondary" style="white-space: pre-wrap;">{{ comment.content }}</p>
@@ -239,13 +239,16 @@
                 {% endif %}
 
                 <div class="d-flex justify-content-center gap-2 mt-3">
-                    <button class="btn btn-outline-danger rounded-pill px-4 fw-semibold" onclick="increaseLike()">
-                        <i class="bi bi-suit-heart-fill me-1"></i> <span id="likeCount">0</span>
-                    </button>
-                    <!-- Bookmarks Readded -->
-                    <button class="btn btn-outline-primary rounded-pill px-4 fw-semibold" onclick="alert('Event saved to bookmarks!')">
-                        <i class="bi bi-bookmark-plus-fill me-1"></i> Save
-                    </button>
+                    <form method="POST" action="{{ url_for('main.like_event', event_id=event.id) }}" class="m-0">
+                        <button type="submit" class="btn btn-outline-danger rounded-pill px-4 fw-semibold hover-scale">
+                            <i class="bi bi-suit-heart-fill me-1"></i> <span>{% if user_liked %}Unlike{% else %}Like{% endif %}</span>
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('main.bookmark_event', event_id=event.id) }}" class="m-0">
+                        <button type="submit" class="btn btn-outline-primary rounded-pill px-4 fw-semibold hover-scale">
+                            <i class="bi bi-bookmark-plus-fill me-1"></i> <span>{% if user_bookmarked %}Saved{% else %}Save{% endif %}</span>
+                        </button>
+                    </form>
                 </div>
             </div>
 

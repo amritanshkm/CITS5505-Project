@@ -13,17 +13,17 @@
             <div class="card-body p-4 p-md-5 bg-white">
                 <div class="text-center mb-4 pb-4 border-bottom dashed-border">
                     <p class="text-muted text-uppercase fw-bold small tracking-wide mb-1">Event Ticket</p>
-                    <h3 class="fw-bold text-dark mb-0">{{ order.event_title }}</h3>
+                    <h3 class="fw-bold text-dark mb-0">{{ order.event.title }}</h3>
                 </div>
 
                 <div class="row g-4 mb-4 pb-4 border-bottom dashed-border">
                     <div class="col-6">
                         <p class="text-muted small mb-1"><i class="bi bi-calendar-event me-2"></i>Date</p>
-                        <p class="fw-semibold text-dark mb-0">{{ order.date }}</p>
+                        <p class="fw-semibold text-dark mb-0">{{ order.event.date }}</p>
                     </div>
                     <div class="col-6">
                         <p class="text-muted small mb-1"><i class="bi bi-geo-alt me-2"></i>Location</p>
-                        <p class="fw-semibold text-dark mb-0">{{ order.location }}</p>
+                        <p class="fw-semibold text-dark mb-0">{{ order.event.location }}</p>
                     </div>
                     <div class="col-6">
                         <p class="text-muted small mb-1"><i class="bi bi-credit-card me-2"></i>Total Paid</p>

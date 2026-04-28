@@ -1,18 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm, CommentForm, CreateEventForm, AnnouncementForm, PaymentForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Event
+from app.models import User, Event, Comment, Announcement, Order
 from app import db
 
 bp = Blueprint('main', __name__)
-
-MOCK_COMMENTS = {}
-MOCK_COMMENT_ID_COUNTER = 1
-
-MOCK_ANNOUNCEMENTS = {}
-
-MOCK_COMMENTS = {}
-MOCK_COMMENT_ID_COUNTER = 1
 
 
 @bp.route('/')
@@ -27,75 +19,100 @@ def event_detail(event_id):
     
     is_creator = current_user.is_authenticated and (event.creator_id == current_user.id)
     
-    global MOCK_COMMENT_ID_COUNTER
     form = CommentForm()
     if form.validate_on_submit():
         if not current_user.is_authenticated:
             flash('Please login to comment.', 'warning')
             return redirect(url_for('main.login'))
             
-        if event_id not in MOCK_COMMENTS:
-            MOCK_COMMENTS[event_id] = []
-            
-        new_comment = {
-            "id": MOCK_COMMENT_ID_COUNTER,
-            "user_id": current_user.id,
-            "user": current_user.nickname,
-            "content": form.comment.data,
-            "likes": 0
-        }
-        MOCK_COMMENTS[event_id].append(new_comment)
-        MOCK_COMMENT_ID_COUNTER += 1
+        new_comment = Comment(
+            content=form.comment.data,
+            author=current_user,
+            event=event
+        )
+        db.session.add(new_comment)
+        db.session.commit()
         flash('Comment posted successfully!', 'success')
         return redirect(url_for('main.event_detail', event_id=event_id))
     
-    # Get comments and sort by likes descending
-    event_comments = MOCK_COMMENTS.get(event_id, [])
-    sorted_comments = sorted(event_comments, key=lambda c: c['likes'], reverse=True)
+    # Get comments and sort by timestamp descending
+    sorted_comments = event.comments.order_by(Comment.timestamp.desc()).all()
     
-    # Get announcements and sort by id descending (newest first)
-    event_announcements = MOCK_ANNOUNCEMENTS.get(event_id, [])
-    sorted_announcements = sorted(event_announcements, key=lambda a: a['id'], reverse=True)
+    # Get announcements and sort by timestamp descending (newest first)
+    sorted_announcements = event.announcements.order_by(Announcement.timestamp.desc()).all()
     
     announcement_form = AnnouncementForm()
+    
+    user_liked = False
+    user_bookmarked = False
+    if current_user.is_authenticated:
+        user_liked = event in current_user.liked_events
+        user_bookmarked = event in current_user.bookmarked_events
     
     return render_template('event_detail.html', title=event.title, event=event, event_id=event_id, 
                            form=form, comments=sorted_comments, is_creator=is_creator, 
                            announcements=sorted_announcements, announcement_form=announcement_form,
-                           current_user_id=current_user.id if current_user.is_authenticated else None)
+                           current_user_id=current_user.id if current_user.is_authenticated else None,
+                           user_liked=user_liked, user_bookmarked=user_bookmarked)
 
 @bp.route('/event/<int:event_id>/comment/<int:comment_id>/like', methods=['POST'])
+@login_required
 def like_comment(event_id, comment_id):
-    event_comments = MOCK_COMMENTS.get(event_id, [])
-    for c in event_comments:
-        if c['id'] == comment_id:
-            c['likes'] += 1
-            break
+    comment = Comment.query.get_or_404(comment_id)
+    if current_user in comment.liked_by:
+        comment.liked_by.remove(current_user)
+        comment.likes -= 1
+    else:
+        comment.liked_by.append(current_user)
+        comment.likes += 1
+    db.session.commit()
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
+@bp.route('/event/<int:event_id>/like', methods=['POST'])
+@login_required
+def like_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    if event in current_user.liked_events:
+        current_user.liked_events.remove(event)
+    else:
+        current_user.liked_events.append(event)
+    db.session.commit()
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
+@bp.route('/event/<int:event_id>/bookmark', methods=['POST'])
+@login_required
+def bookmark_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    if event in current_user.bookmarked_events:
+        current_user.bookmarked_events.remove(event)
+        flash('Event removed from bookmarks.', 'info')
+    else:
+        current_user.bookmarked_events.append(event)
+        flash('Event saved to bookmarks!', 'success')
+    db.session.commit()
     return redirect(url_for('main.event_detail', event_id=event_id))
 
 @bp.route('/event/<int:event_id>/comment/<int:comment_id>/delete', methods=['POST'])
 @login_required
 def delete_comment(event_id, comment_id):
     event = Event.query.get_or_404(event_id)
-    is_creator = (event.creator_id == current_user.id)
-    event_comments = MOCK_COMMENTS.get(event_id, [])
-    comment_to_del = next((c for c in event_comments if c['id'] == comment_id), None)
+    comment = Comment.query.get_or_404(comment_id)
     
-    if not comment_to_del:
-        flash('Comment not found.', 'danger')
+    if comment.event_id != event.id:
+        flash('Comment mismatch.', 'danger')
         return redirect(url_for('main.event_detail', event_id=event_id))
         
-    is_sender = (comment_to_del.get("user_id") == current_user.id)
+    is_creator = (event.creator_id == current_user.id)
+    is_sender = (comment.user_id == current_user.id)
+    
     if not (is_creator or is_sender):
         flash('Unauthorized', 'danger')
         return redirect(url_for('main.event_detail', event_id=event_id))
     
-    event_comments = MOCK_COMMENTS.get(event_id, [])
-    MOCK_COMMENTS[event_id] = [c for c in event_comments if c['id'] != comment_id]
+    db.session.delete(comment)
+    db.session.commit()
     flash('Comment deleted.', 'info')
     return redirect(url_for('main.event_detail', event_id=event_id))
-
-MOCK_ANNOUNCEMENT_ID_COUNTER = 1
 
 @bp.route('/event/<int:event_id>/announcement/create', methods=['POST'])
 @login_required
@@ -105,16 +122,14 @@ def create_announcement(event_id):
         flash('Unauthorized', 'danger')
         return redirect(url_for('main.event_detail', event_id=event_id))
         
-    global MOCK_ANNOUNCEMENT_ID_COUNTER
     form = AnnouncementForm()
     if form.validate_on_submit():
-        if event_id not in MOCK_ANNOUNCEMENTS:
-            MOCK_ANNOUNCEMENTS[event_id] = []
-        MOCK_ANNOUNCEMENTS[event_id].append({
-            "id": MOCK_ANNOUNCEMENT_ID_COUNTER,
-            "content": form.content.data
-        })
-        MOCK_ANNOUNCEMENT_ID_COUNTER += 1
+        announcement = Announcement(
+            content=form.content.data,
+            event=event
+        )
+        db.session.add(announcement)
+        db.session.commit()
         flash('Announcement added!', 'success')
     return redirect(url_for('main.event_detail', event_id=event_id))
 
@@ -126,8 +141,13 @@ def delete_announcement(event_id, ann_id):
         flash('Unauthorized', 'danger')
         return redirect(url_for('main.event_detail', event_id=event_id))
         
-    announcements = MOCK_ANNOUNCEMENTS.get(event_id, [])
-    MOCK_ANNOUNCEMENTS[event_id] = [a for a in announcements if a['id'] != ann_id]
+    announcement = Announcement.query.get_or_404(ann_id)
+    if announcement.event_id != event.id:
+        flash('Mismatch warning', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+        
+    db.session.delete(announcement)
+    db.session.commit()
     flash('Announcement deleted.', 'info')
     return redirect(url_for('main.event_detail', event_id=event_id))
 
@@ -191,65 +211,50 @@ def delete_event(event_id):
     flash('Event deleted.', 'success')
     return redirect(url_for('main.profile'))
 
-MOCK_ORDERS = []
-MOCK_ORDER_ID_COUNTER = 1000
-
 @bp.route('/event/<int:event_id>/join', methods=['POST'])
 @login_required
 def join_event(event_id):
-    global MOCK_ORDER_ID_COUNTER
     event = Event.query.get_or_404(event_id)
-        
-    order_id = MOCK_ORDER_ID_COUNTER
-    MOCK_ORDER_ID_COUNTER += 1
     
-    order = {
-        "order_id": order_id,
-        "event_id": event.id,
-        "event_title": event.title,
-        "date": event.date,
-        "location": event.location,
-        "total": event.price_label,
-        "status": "Free Registration"
-    }
-    MOCK_ORDERS.append(order)
+    order = Order(
+        user_id=current_user.id,
+        event_id=event.id,
+        total=event.price_label,
+        status="Free Registration"
+    )
+    db.session.add(order)
+    db.session.commit()
     
     flash('Successfully joined the free event!', 'success')
-    return redirect(url_for('main.order_detail', order_id=order_id))
+    return redirect(url_for('main.order_detail', order_id=order.order_id))
 
 @bp.route('/event/<int:event_id>/payment', methods=['GET', 'POST'])
 @login_required
 def payment(event_id):
-    global MOCK_ORDER_ID_COUNTER
     event = Event.query.get_or_404(event_id)
         
     form = PaymentForm()
     if form.validate_on_submit():
-        order_id = MOCK_ORDER_ID_COUNTER
-        MOCK_ORDER_ID_COUNTER += 1
-        
-        order = {
-            "order_id": order_id,
-            "event_id": event.id,
-            "event_title": event.title,
-            "date": event.date,
-            "location": event.location,
-            "total": event.price_label,
-            "status": "Paid"
-        }
-        MOCK_ORDERS.append(order)
+        order = Order(
+            user_id=current_user.id,
+            event_id=event.id,
+            total=event.price_label,
+            status="Paid"
+        )
+        db.session.add(order)
+        db.session.commit()
         
         flash('Payment Successful! You have joined the event.', 'success')
-        return redirect(url_for('main.order_detail', order_id=order_id))
+        return redirect(url_for('main.order_detail', order_id=order.order_id))
         
     return render_template('payment.html', title='Event Checkout', event=event, form=form)
 
 @bp.route('/order/<int:order_id>')
 @login_required
 def order_detail(order_id):
-    order = next((o for o in MOCK_ORDERS if o['order_id'] == order_id), None)
-    if not order:
-        flash('Order not found.', 'danger')
+    order = Order.query.get_or_404(order_id)
+    if order.user_id != current_user.id:
+        flash('Unauthorized', 'danger')
         return redirect(url_for('main.profile'))
     return render_template('order_detail.html', title='Order Receipt', order=order)
 
@@ -289,10 +294,7 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.index'))
 
-MOCK_LIKES = [
-    {"event": "Startup Pitch Evening", "date": "15 Apr, 2026", "location": "Subiaco"},
-    {"event": "Sunset Beach Meetup", "date": "16 Apr, 2026", "location": "Cottesloe Beach"}
-]
+
 
 @bp.route('/event/create', methods=['GET', 'POST'])
 @login_required
@@ -359,7 +361,7 @@ def profile():
                            profile_form=profile_form, 
                            password_form=password_form,
                            user=current_user,
-                           collections=[],
-                           likes=[],
+                           collections=current_user.bookmarked_events.all() if current_user.is_authenticated else [],
+                           likes=current_user.liked_events.all() if current_user.is_authenticated else [],
                            my_events=current_user.created_events.all(),
-                           orders=MOCK_ORDERS)
+                           orders=current_user.orders.order_by(Order.timestamp.desc()).all())
