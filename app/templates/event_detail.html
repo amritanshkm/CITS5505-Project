@@ -28,6 +28,42 @@
                     <h2>Event Details</h2>
                 </div>
                 
+                <!-- Announcements Section -->
+                {% if announcements or is_creator %}
+                <div class="announcements-section bg-light rounded p-3 mb-4 border-start border-4 border-warning">
+                    <h5 class="fw-bold text-warning-emphasis mb-3">📢 Announcements</h5>
+                    
+                    {% if is_creator %}
+                    <form method="POST" action="{{ url_for('main.create_announcement', event_id=event_id) }}" class="mb-3">
+                        {{ announcement_form.hidden_tag() }}
+                        <div class="d-flex gap-2">
+                            {{ announcement_form.content(class="form-control", placeholder="Post an update for attendees...", rows="1") }}
+                            {{ announcement_form.submit(class="btn btn-warning fw-bold text-dark") }}
+                        </div>
+                    </form>
+                    {% endif %}
+
+                    {% if announcements %}
+                    <ul class="list-group list-group-flush rounded">
+                        {% for ann in announcements %}
+                        <li class="list-group-item bg-transparent px-0 border-bottom-0 mb-2 p-2 rounded shadow-sm" style="background: white !important;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-dark">{{ ann.content }}</span>
+                                {% if is_creator %}
+                                <form method="POST" action="{{ url_for('main.delete_announcement', event_id=event_id, ann_id=ann.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger ms-2" title="Delete Announcement">🗑️</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted small mb-0">No announcements yet.</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
                 <p class="event-meta" style="font-size: 1.1rem;">
                     <strong>Date:</strong> {{ event.date }}<br>
                     <strong>Time:</strong> {{ event.time }}<br>
@@ -80,11 +116,20 @@
                                 <div class="comment-item p-3 mb-3 border rounded shadow-sm">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h6 class="mb-0 fw-bold">{{ comment.user }}</h6>
-                                        <form method="POST" action="{{ url_for('main.like_comment', event_id=event_id, comment_id=comment.id) }}" style="display: inline;">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 20px;">
-                                                ❤️ <span class="ms-1">{{ comment.likes }}</span>
-                                            </button>
-                                        </form>
+                                        <div class="d-flex align-items-center">
+                                            <form method="POST" action="{{ url_for('main.like_comment', event_id=event_id, comment_id=comment.id) }}" style="display: inline;">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 20px;">
+                                                    ❤️ <span class="ms-1">{{ comment.likes }}</span>
+                                                </button>
+                                            </form>
+                                            {% if is_creator %}
+                                            <form method="POST" action="{{ url_for('main.delete_comment', event_id=event_id, comment_id=comment.id) }}" style="display: inline;" class="ms-2">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary px-2" style="border-radius: 20px;" title="Delete Comment">
+                                                    🗑️
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                     <p class="mb-0 text-dark" style="white-space: pre-wrap;">{{ comment.content }}</p>
                                 </div>
