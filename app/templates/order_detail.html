@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-7 col-lg-6">
+        <div class="card border-0 shadow-lg" style="border-radius: 1rem; overflow: hidden;">
+            <div class="bg-success text-white text-center py-4">
+                <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
+                <h2 class="mt-2 mb-0 fw-bold">Order Confirmed!</h2>
+                <p class="mb-0 text-white-50">Order #{{ order.order_id }}</p>
+            </div>
+            
+            <div class="card-body p-4 p-md-5 bg-white">
+                <div class="text-center mb-4 pb-4 border-bottom dashed-border">
+                    <p class="text-muted text-uppercase fw-bold small tracking-wide mb-1">Event Ticket</p>
+                    <h3 class="fw-bold text-dark mb-0">{{ order.event_title }}</h3>
+                </div>
+
+                <div class="row g-4 mb-4 pb-4 border-bottom dashed-border">
+                    <div class="col-6">
+                        <p class="text-muted small mb-1"><i class="bi bi-calendar-event me-2"></i>Date</p>
+                        <p class="fw-semibold text-dark mb-0">{{ order.date }}</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-1"><i class="bi bi-geo-alt me-2"></i>Location</p>
+                        <p class="fw-semibold text-dark mb-0">{{ order.location }}</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-1"><i class="bi bi-credit-card me-2"></i>Total Paid</p>
+                        <p class="fw-bold text-success mb-0">{{ order.total }}</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-1"><i class="bi bi-info-circle me-2"></i>Status</p>
+                        <p class="fw-semibold text-dark mb-0"><span class="badge bg-primary text-white px-2 py-1">{{ order.status }}</span></p>
+                    </div>
+                </div>
+
+                <div class="text-center bg-light p-4 rounded-4 mb-4">
+                    <i class="bi bi-qr-code text-dark" style="font-size: 5rem; opacity: 0.8;"></i>
+                    <p class="text-muted small mt-2 mb-0">Present this code at check-in</p>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.event_detail', event_id=order.event_id) }}" class="btn btn-outline-primary btn-lg rounded-pill fw-bold">Back to Event</a>
+                    <a href="{{ url_for('main.profile') }}" class="btn btn-light btn-lg rounded-pill fw-bold text-dark">Go to My Orders</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashed-border {
+        border-bottom-style: dashed !important;
+        border-bottom-width: 2px !important;
+        border-color: #dee2e6 !important;
+    }
+    .tracking-wide {
+        letter-spacing: 0.1em;
+    }
+</style>
+{% endblock %}
