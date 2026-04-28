@@ -1,0 +1,77 @@
+# Database Models & Relational Schemas
+
+This document defines the exact conceptual mappings that our SQLite `SQLAlchemy` ORM will adopt. It illustrates exactly how complex relationships are tied together.
+
+## ORM Entities overview
+
+### 1. `User` Model
+Stores heavily encrypted and strictly sanitized user registration data.
+* `id`: Integer, Primary Key (Auto-incrementing)
+* `nickname`: String(64), Unique, Indexed
+* `email`: String(120), Unique, Indexed
+* `password_hash`: String(128) - Must be salted via werkzeug.
+* `join_date`: DateTime, Default=UTC_Now.
+
+### 2. `Event` Model
+Represents the actual application events tied heavily to location/GIS approximations and commerce states.
+* `id`: Integer, Primary Key
+* `title`: String(140), Indexed
+* `description`: Text
+* `category`: String(50)
+* `price_type`: String(20) [e.g. 'free', 'paid']
+* `price_label`: String(50) [e.g. '$50.00', 'Free']
+* `date`: String(30)
+* `time`: String(30)
+* `location`: Text
+* `lat`: Float
+* `lng`: Float
+* `capacity`: Integer (Used for non-trivial full capacity checks)
+* `creator_id`: Integer, Foreign Key (`user.id`)
+
+### 3. `Announcement` Model
+Stores broadcast updates pushed independently by the event creator over time.
+* `id`: Integer, Primary Key
+* `content`: Text
+* `timestamp`: DateTime, Default=UTC_Now, Indexed (Used for reverse chronologies)
+* `event_id`: Integer, Foreign Key (`event.id`)
+
+### 4. `Comment` Model
+Hosts user discussions linked exclusively to a single event environment. 
+* `id`: Integer, Primary Key
+* `content`: Text
+* `timestamp`: DateTime, Default=UTC_Now
+* `likes`: Integer, Default=0
+* `user_id`: Integer, Foreign Key (`user.id`)
+* `event_id`: Integer, Foreign Key (`event.id`)
+
+### 5. `Order` Model (Tickets/Ledger)
+Acts as the immutable ledger simulating financial checkouts or free claim ticket generation.
+* `order_id`: Integer, Primary Key 
+* `timestamp`: DateTime, Default=UTC_Now
+* `status`: String(20) [e.g. "Paid", "Free Registration", "Refunded"]
+* `total`: String(20) [Snapshots the `Event.price_label` frozen in time]
+* `user_id`: Integer, Foreign Key (`user.id`)
+* `event_id`: Integer, Foreign Key (`event.id`)
+
+---
+
+## Relationship Mappings 
+
+These ORM mapping strategies define the complex interconnectivity across the app logic ensuring cascade deletes and joins work cleanly.
+
+### One-to-Many Relationships (1:N)
+* **User 1 : N Events:** A single creator (`User`) can host infinite events. Handled via `Event.creator_id`.
+* **User 1 : N Comments:** A user can leave practically infinite comments across boards. Handled via `Comment.user_id`.
+* **User 1 : N Orders:** A user maintains a history of order ledgers. Handled via `Order.user_id`.
+* **Event 1 : N Comments:** The discussion interface hosts hundreds of comments. Deleting an Event must Cascade delete all linked comments.
+* **Event 1 : N Announcements:** The live update engine.
+* **Event 1 : N Orders:** Represents attendees holding tickets to an occurrence. Essential for capacity capping logic (`event.orders.count() >= event.capacity`).
+
+### Many-to-Many Relationships (N:N)
+#### Bookmarking / Saved Collections Structure
+Implementing bookmarks requires a dedicated associative secondary table holding no intrinsic models, but purely joining IDs dynamically.
+* **`user_bookmarks_table` (Associative Secondary)**
+  * `user_id`: Foreign Key (`user.id`)
+  * `event_id`: Foreign Key (`event.id`)
+
+Through `db.relationship(..., secondary=user_bookmarks_table)`, a User can easily call `current_user.bookmarked_events` executing a complex join under the hood, traversing the mapping layer smoothly to query saved objects dynamically on the Profile tab.
