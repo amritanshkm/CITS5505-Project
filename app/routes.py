@@ -1,5 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm, CommentForm, CreateEventForm, AnnouncementForm, PaymentForm
+from flask_login import current_user, login_user, logout_user, login_required
+from app.models import User
+from app import db
 
 bp = Blueprint('main', __name__)
 
@@ -248,6 +251,7 @@ MOCK_ORDERS = []
 MOCK_ORDER_ID_COUNTER = 1000
 
 @bp.route('/event/<int:event_id>/join', methods=['POST'])
+@login_required
 def join_event(event_id):
     global MOCK_ORDER_ID_COUNTER
     event = next((e for e in EVENTS if e['id'] == event_id), None)
@@ -273,6 +277,7 @@ def join_event(event_id):
     return redirect(url_for('main.order_detail', order_id=order_id))
 
 @bp.route('/event/<int:event_id>/payment', methods=['GET', 'POST'])
+@login_required
 def payment(event_id):
     global MOCK_ORDER_ID_COUNTER
     event = next((e for e in EVENTS if e['id'] == event_id), None)
@@ -302,6 +307,7 @@ def payment(event_id):
     return render_template('payment.html', title='Event Checkout', event=event, form=form)
 
 @bp.route('/order/<int:order_id>')
+@login_required
 def order_detail(order_id):
     order = next((o for o in MOCK_ORDERS if o['order_id'] == order_id), None)
     if not order:
@@ -312,25 +318,36 @@ def order_detail(order_id):
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
     form = LoginForm()
     if form.validate_on_submit():
-        # TODO: integrate with actual User model handling
-        flash('Login successful (mock)!', 'success')
+        user = User.query.filter_by(email=form.email.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid email or password', 'danger')
+            return redirect(url_for('main.login'))
+        login_user(user)
+        flash('Login successful!', 'success')
         return redirect(url_for('main.index'))
     return render_template('login.html', title='Sign In', form=form)
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        # TODO: integrate with actual User model and db.session.commit()
-        flash('Registration successful (mock)!', 'success')
+        user = User(nickname=form.nickname.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('main.login'))
     return render_template('register.html', title='Register', form=form)
 
 @bp.route('/logout')
 def logout():
-    # TODO: integrate with flask_login
+    logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.index'))
 
@@ -353,6 +370,7 @@ MOCK_LIKES = [
 MOCK_MY_EVENTS = []
 
 @bp.route('/event/create', methods=['GET', 'POST'])
+@login_required
 def create_event():
     global MOCK_EVENT_ID_COUNTER
     form = CreateEventForm()
@@ -391,29 +409,36 @@ def create_event():
 
 
 @bp.route('/profile', methods=['GET', 'POST'])
+@login_required
 def profile():
     profile_form = ProfileUpdateForm(prefix='profile')
     password_form = ChangePasswordForm(prefix='password')
     
-    if profile_form.submit_profile.data and profile_form.validate():
-        MOCK_USER['nickname'] = profile_form.nickname.data
-        MOCK_USER['email'] = profile_form.email.data
+    if profile_form.submit_profile.data and profile_form.validate_on_submit():
+        current_user.nickname = profile_form.nickname.data
+        current_user.email = profile_form.email.data
+        db.session.commit()
         flash('Profile information updated successfully!', 'success')
         return redirect(url_for('main.profile'))
         
-    if password_form.submit_password.data and password_form.validate():
-        flash('Password changed successfully!', 'success')
+    if password_form.submit_password.data and password_form.validate_on_submit():
+        if not current_user.check_password(password_form.old_password.data):
+            flash('Incorrect current password.', 'danger')
+        else:
+            current_user.set_password(password_form.new_password.data)
+            db.session.commit()
+            flash('Password changed successfully!', 'success')
         return redirect(url_for('main.profile'))
         
     if request.method == 'GET':
-        profile_form.nickname.data = MOCK_USER['nickname']
-        profile_form.email.data = MOCK_USER['email']
+        profile_form.nickname.data = current_user.nickname
+        profile_form.email.data = current_user.email
         
     return render_template('profile.html', 
                            title='My Profile', 
                            profile_form=profile_form, 
                            password_form=password_form,
-                           user=MOCK_USER,
+                           user=current_user,
                            collections=MOCK_COLLECTIONS,
                            likes=MOCK_LIKES,
                            my_events=MOCK_MY_EVENTS,

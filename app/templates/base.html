@@ -24,15 +24,21 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
                     </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link ms-2" href="{{ url_for('main.profile') }}">My Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-outline-light ms-2 px-3" href="{{ url_for('main.logout') }}">Logout</a>
+                    </li>
+                    {% else %}
                     <li class="nav-item">
                         <a class="nav-link btn btn-outline-light ms-2 px-3" href="{{ url_for('main.login') }}">Login</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link btn btn-light text-primary ms-2 px-3 fw-semibold" href="{{ url_for('main.register') }}">Register</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link ms-2" href="{{ url_for('main.profile') }}">My Profile</a>
-                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
