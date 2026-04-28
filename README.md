@@ -65,10 +65,13 @@ Tests included:
 - Ensuring `WTForms` correctly intercepts duplicate email registrations via `ValidationError` (`test_register_duplicate_email_fails`).
 - Handling Flask-Login session management correctly upon login (`test_login_success_handles_session`).
 - Correct rejection of invalid login credentials (`test_login_failure_bad_password`).
+- Executing robust CRUD state lifecycle changes over the `Event` Model (`tests/test_events.py`), including ORM cascades over `Comment`, `Announcement` creation, and asserting Many-to-Many nested queries (like Bookmarks) update successfully.
 
 **To run the Unit Tests:**
 ```bash
 python -m pytest tests/test_auth.py
+python -m pytest tests/test_events.py
+# Or to run the entire suite at once: python -m pytest tests/
 ```
 
 ### 2. Live Server UI Automation (Selenium)
