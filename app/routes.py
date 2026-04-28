@@ -244,23 +244,37 @@ def delete_event(event_id):
     flash('Event deleted.', 'success')
     return redirect(url_for('main.profile'))
 
+MOCK_ORDERS = []
+MOCK_ORDER_ID_COUNTER = 1000
+
 @bp.route('/event/<int:event_id>/join', methods=['POST'])
 def join_event(event_id):
+    global MOCK_ORDER_ID_COUNTER
     event = next((e for e in EVENTS if e['id'] == event_id), None)
     if not event:
         flash('Event not found.', 'danger')
         return redirect(url_for('main.index'))
         
-    MOCK_COLLECTIONS.append({
-        "event": event['title'], 
-        "date": event['date'], 
-        "location": event['location']
-    })
+    order_id = MOCK_ORDER_ID_COUNTER
+    MOCK_ORDER_ID_COUNTER += 1
+    
+    order = {
+        "order_id": order_id,
+        "event_id": event_id,
+        "event_title": event['title'],
+        "date": event['date'],
+        "location": event['location'],
+        "total": event['price_label'],
+        "status": "Free Registration"
+    }
+    MOCK_ORDERS.append(order)
+    
     flash('Successfully joined the free event!', 'success')
-    return redirect(url_for('main.profile'))
+    return redirect(url_for('main.order_detail', order_id=order_id))
 
 @bp.route('/event/<int:event_id>/payment', methods=['GET', 'POST'])
 def payment(event_id):
+    global MOCK_ORDER_ID_COUNTER
     event = next((e for e in EVENTS if e['id'] == event_id), None)
     if not event:
         flash('Event not found.', 'danger')
@@ -268,17 +282,33 @@ def payment(event_id):
         
     form = PaymentForm()
     if form.validate_on_submit():
-        # Backend validation passes
-        # Add to collections simulating purchase completion
-        MOCK_COLLECTIONS.append({
-            "event": event['title'], 
-            "date": event['date'], 
-            "location": event['location']
-        })
+        order_id = MOCK_ORDER_ID_COUNTER
+        MOCK_ORDER_ID_COUNTER += 1
+        
+        order = {
+            "order_id": order_id,
+            "event_id": event_id,
+            "event_title": event['title'],
+            "date": event['date'],
+            "location": event['location'],
+            "total": event['price_label'],
+            "status": "Paid"
+        }
+        MOCK_ORDERS.append(order)
+        
         flash('Payment Successful! You have joined the event.', 'success')
-        return redirect(url_for('main.profile'))
+        return redirect(url_for('main.order_detail', order_id=order_id))
         
     return render_template('payment.html', title='Event Checkout', event=event, form=form)
+
+@bp.route('/order/<int:order_id>')
+def order_detail(order_id):
+    order = next((o for o in MOCK_ORDERS if o['order_id'] == order_id), None)
+    if not order:
+        flash('Order not found.', 'danger')
+        return redirect(url_for('main.profile'))
+    return render_template('order_detail.html', title='Order Receipt', order=order)
+
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -386,4 +416,5 @@ def profile():
                            user=MOCK_USER,
                            collections=MOCK_COLLECTIONS,
                            likes=MOCK_LIKES,
-                           my_events=MOCK_MY_EVENTS)
+                           my_events=MOCK_MY_EVENTS,
+                           orders=MOCK_ORDERS)
