@@ -30,7 +30,22 @@ The application is an **Event Finder & Sharing Platform** that allows users to c
    pip install -r requirements.txt
    ```
 
-3. **Run the Application**:
+3. **Configure Environment Variables**:
+   Create a `.env` file in the root directory (next to `run.py`) and insert the following local configurations:
+   ```env
+   SECRET_KEY=dev-secret-key-for-local-testing
+   DATABASE_URL=sqlite:///app.db
+   ```
+   *(Note: NEVER commit real production secrets to GitHub. `.env` is deliberately ignored by git.)*
+
+4. **Initialize the Database**:
+   Establish the local SQLite database schema by running the Flask-Migrate upgrade command:
+   ```bash
+   flask db upgrade
+   ```
+   *(This step strictly expects `DATABASE_URL` and `app/models.py` structural relations to build the initial `app.db` local instance.)*
+
+5. **Run the Application**:
    Execute the `run.py` file to start the Flask development server:
    ```bash
    python run.py
