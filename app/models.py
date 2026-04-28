@@ -45,6 +45,12 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+from app import login
+
+@login.user_loader
+def load_user(id):
+    return db.session.get(User, int(id))
+
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(140), index=True, nullable=False)
