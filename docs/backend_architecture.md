@@ -46,14 +46,16 @@ A standard transaction (e.g., Joining an event / Making a payment) follows this 
 
 ---
 
-## 4. Role Mapping & Form Valdation Strategy
+## 4. Role Mapping & Form Validation Strategy (Anti-Bypass Checks)
 
 **Roles:**
 * **Guest:** Read-only access to `/index` and `/event_details`.
 * **Authenticated User:** Can leave comments, book tickets, like events.
 * **Event Creator:** Derived purely through relationship mappings (`Event.creator_id == User.id`). Bypasses `is_creator` conditionals triggering permission sets to delete comments within their event, or delete the event itself.
 
-**Incoming Form Validations:**
-* Forms are governed tightly by classes derived from `FlaskForm`. 
-* Uses comprehensive triggers (e.g. `Length(min=8, max=30)`, `Email()`, `DataRequired()`).
-* Registration checks for DB duplication (Throws "Username taken") before committing standard inserts.
+**Absolute Backend Validation (Defeating JS-Bypass):**
+* **The Vulnerability:** Client-side JavaScript validation (e.g., HTML5 `required`, regex JS checking in `payment.html`) is trivial. Malicious users can easily bypass the browser UI using cURL, Postman, or intercepting proxies (Burp Suite) to submit arbitrary POST data.
+* **The Shield:** We **do not trust frontend data whatsoever**. Every single POST request must pass through backend Flask-WTF validation.
+  * If a user skips JS validation, `PaymentForm().validate_on_submit()` on the backend will instantly reject the payload if CVV isn't exactly 3 digits, or if the string length is unsafe.
+  * We also perform semantic validations (e.g., verifying `current_user` actually possesses enough funds, or verifying the ticket `order.count < event.capacity` strictly on the backend before running `db.session.commit()`).
+* Registration firmly checks the database for duplication (Throws "Username taken") ensuring unique constraints at the database level rather than just the UI level.

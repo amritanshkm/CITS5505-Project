@@ -68,10 +68,22 @@ These ORM mapping strategies define the complex interconnectivity across the app
 * **Event 1 : N Orders:** Represents attendees holding tickets to an occurrence. Essential for capacity capping logic (`event.orders.count() >= event.capacity`).
 
 ### Many-to-Many Relationships (N:N)
-#### Bookmarking / Saved Collections Structure
-Implementing bookmarks requires a dedicated associative secondary table holding no intrinsic models, but purely joining IDs dynamically.
-* **`user_bookmarks_table` (Associative Secondary)**
+Implementing bookmarks and robust "like" engines requires dedicated associative secondary tables holding no intrinsic models (just mapping unique interactions dynamically).
+
+#### 1. Bookmarking / Saved Collections
+* **`user_bookmarks` (Associative Table)**
   * `user_id`: Foreign Key (`user.id`)
   * `event_id`: Foreign Key (`event.id`)
+  * Allows `current_user.bookmarked_events` to retrieve collections for the Profile tab.
 
-Through `db.relationship(..., secondary=user_bookmarks_table)`, a User can easily call `current_user.bookmarked_events` executing a complex join under the hood, traversing the mapping layer smoothly to query saved objects dynamically on the Profile tab.
+#### 2. Event Likes Tracking
+* **`user_event_likes` (Associative Table)**
+  * `user_id`: Foreign Key (`user.id`)
+  * `event_id`: Foreign Key (`event.id`)
+  * Ensures a user can only "Like" an event once, preventing inflated metric spamming.
+
+#### 3. Comment Likes Tracking
+* **`user_comment_likes` (Associative Table)**
+  * `user_id`: Foreign Key (`user.id`)
+  * `comment_id`: Foreign Key (`comment.id`)
+  * Links a user to specific comment upvotes securely, updating the `Comment.likes` counter accurately.
