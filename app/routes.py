@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm
+from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm, CommentForm
 
 bp = Blueprint('main', __name__)
 
@@ -50,18 +50,55 @@ EVENTS = [
     },
 ]
 
+MOCK_COMMENTS = {}
+MOCK_COMMENT_ID_COUNTER = 1
+
+
 @bp.route('/')
 @bp.route('/index')
 def index():
     return render_template('index.html', title='Home', events=EVENTS)
 
-@bp.route('/event/<int:event_id>')
+@bp.route('/event/<int:event_id>', methods=['GET', 'POST'])
 def event_detail(event_id):
     if event_id < 0 or event_id >= len(EVENTS):
         flash('Event not found', 'danger')
         return redirect(url_for('main.index'))
     event = EVENTS[event_id]
-    return render_template('event_detail.html', title=event['title'], event=event, event_id=event_id)
+    
+    global MOCK_COMMENT_ID_COUNTER
+    form = CommentForm()
+    if form.validate_on_submit():
+        if event_id not in MOCK_COMMENTS:
+            MOCK_COMMENTS[event_id] = []
+            
+        new_comment = {
+            "id": MOCK_COMMENT_ID_COUNTER,
+            "user": MOCK_USER["nickname"],
+            "content": form.comment.data,
+            "likes": 0
+        }
+        MOCK_COMMENTS[event_id].append(new_comment)
+        MOCK_COMMENT_ID_COUNTER += 1
+        flash('Comment posted successfully!', 'success')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+    
+    # Get comments and sort by likes descending
+    event_comments = MOCK_COMMENTS.get(event_id, [])
+    # Sort out of place
+    sorted_comments = sorted(event_comments, key=lambda c: c['likes'], reverse=True)
+    
+    return render_template('event_detail.html', title=event['title'], event=event, event_id=event_id, form=form, comments=sorted_comments)
+
+@bp.route('/event/<int:event_id>/comment/<int:comment_id>/like', methods=['POST'])
+def like_comment(event_id, comment_id):
+    event_comments = MOCK_COMMENTS.get(event_id, [])
+    for c in event_comments:
+        if c['id'] == comment_id:
+            c['likes'] += 1
+            break
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
