@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm, CommentForm, CreateEventForm, AnnouncementForm
+from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm, CommentForm, CreateEventForm, AnnouncementForm, PaymentForm
 
 bp = Blueprint('main', __name__)
 
@@ -244,6 +244,41 @@ def delete_event(event_id):
     flash('Event deleted.', 'success')
     return redirect(url_for('main.profile'))
 
+@bp.route('/event/<int:event_id>/join', methods=['POST'])
+def join_event(event_id):
+    event = next((e for e in EVENTS if e['id'] == event_id), None)
+    if not event:
+        flash('Event not found.', 'danger')
+        return redirect(url_for('main.index'))
+        
+    MOCK_COLLECTIONS.append({
+        "event": event['title'], 
+        "date": event['date'], 
+        "location": event['location']
+    })
+    flash('Successfully joined the free event!', 'success')
+    return redirect(url_for('main.profile'))
+
+@bp.route('/event/<int:event_id>/payment', methods=['GET', 'POST'])
+def payment(event_id):
+    event = next((e for e in EVENTS if e['id'] == event_id), None)
+    if not event:
+        flash('Event not found.', 'danger')
+        return redirect(url_for('main.index'))
+        
+    form = PaymentForm()
+    if form.validate_on_submit():
+        # Backend validation passes
+        # Add to collections simulating purchase completion
+        MOCK_COLLECTIONS.append({
+            "event": event['title'], 
+            "date": event['date'], 
+            "location": event['location']
+        })
+        flash('Payment Successful! You have joined the event.', 'success')
+        return redirect(url_for('main.profile'))
+        
+    return render_template('payment.html', title='Event Checkout', event=event, form=form)
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
