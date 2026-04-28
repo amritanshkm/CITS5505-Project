@@ -218,11 +218,11 @@ def edit_event(event_id):
 
 @bp.route('/event/<int:event_id>/delete', methods=['POST'])
 def delete_event(event_id):
+    global EVENTS, MOCK_MY_EVENTS, MOCK_ANNOUNCEMENTS, MOCK_COMMENTS
     if not any(my_ev['id'] == event_id for my_ev in MOCK_MY_EVENTS):
         flash('Unauthorized', 'danger')
         return redirect(url_for('main.profile'))
         
-    global EVENTS, MOCK_MY_EVENTS, MOCK_ANNOUNCEMENTS, MOCK_COMMENTS
     EVENTS = [e for e in EVENTS if e['id'] != event_id]
     MOCK_MY_EVENTS = [m for m in MOCK_MY_EVENTS if m['id'] != event_id]
     if event_id in MOCK_ANNOUNCEMENTS:
