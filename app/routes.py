@@ -216,6 +216,10 @@ def delete_event(event_id):
 def join_event(event_id):
     event = Event.query.get_or_404(event_id)
     
+    if event.capacity is not None and event.orders.count() >= event.capacity:
+        flash('Registrations are full for this event.', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event.id))
+    
     order = Order(
         user_id=current_user.id,
         event_id=event.id,
@@ -232,6 +236,10 @@ def join_event(event_id):
 @login_required
 def payment(event_id):
     event = Event.query.get_or_404(event_id)
+    
+    if event.capacity is not None and event.orders.count() >= event.capacity:
+        flash('Tickets are sold out for this event.', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event.id))
         
     form = PaymentForm()
     if form.validate_on_submit():

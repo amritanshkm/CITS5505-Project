@@ -72,6 +72,7 @@ Tests included:
   4. **Update DB**: Manually alters the event title, fires a `commit()`, and verifies the DB snapshot changed correctly.
   5. **Simulate M2M Interactions**: Attaches Comments, Announcements, and Bookmarks to simulate Phase 4 N:N traffic.
   6. **Wipe State**: Invokes `db.session.delete()` to safely demolish all related assets via SQL cascade.
+- **Validating Checkout ledgers & Capacity Boundary Limits (`tests/test_orders.py`)**: Specifically assesses the Phase 5 implementation by asserting correct `Order` ledger generation flows. Checks include boundary validations ensuring an Event rejects registrations safely with flashed errors if maximum ticket `capacity` limits are exceeded by concurrent joining users.
 
 **To run the Unit Tests:**
 ```bash
