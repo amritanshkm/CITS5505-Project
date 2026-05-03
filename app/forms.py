@@ -78,8 +78,8 @@ class CreateEventForm(FlaskForm):
     lat = HiddenField('Latitude', default="-31.9523")
     lng = HiddenField('Longitude', default="115.8613")
     category = SelectField('Category', choices=[('Tech', 'Tech'), ('Wellness', 'Wellness'), ('Business', 'Business'), ('Social', 'Social'), ('Other', 'Other')], validators=[DataRequired()])
-    capacity = IntegerField('Maximum Capacity (Leave blank for unlimited)', validators=[Optional(), NumberRange(min=1)])
-    price_label = StringField('Price (e.g. Free or $10)', validators=[DataRequired(), Length(max=20)])
+    capacity = IntegerField('Capacity', validators=[Optional(), NumberRange(min=1)])
+    price_label = StringField('Price', validators=[DataRequired(), Length(max=20)])
     description = TextAreaField('Description', validators=[DataRequired(), Length(max=1000)])
     submit = SubmitField('Create Event')
 

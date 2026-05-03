@@ -66,34 +66,49 @@ def like_comment(event_id, comment_id):
     if current_user in comment.liked_by:
         comment.liked_by.remove(current_user)
         comment.likes -= 1
+        action = 'unliked'
     else:
         comment.liked_by.append(current_user)
         comment.likes += 1
+        action = 'liked'
     db.session.commit()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or 'application/json' in request.accept_mimetypes:
+        return {'status': 'success', 'action': action, 'likes': comment.likes}
     return redirect(url_for('main.event_detail', event_id=event_id))
 
 @bp.route('/event/<int:event_id>/like', methods=['POST'])
 @login_required
 def like_event(event_id):
     event = Event.query.get_or_404(event_id)
+    action = 'liked'
     if event in current_user.liked_events:
         current_user.liked_events.remove(event)
+        action = 'unliked'
     else:
         current_user.liked_events.append(event)
     db.session.commit()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or 'application/json' in request.accept_mimetypes:
+        return {'status': 'success', 'action': action}
     return redirect(url_for('main.event_detail', event_id=event_id))
 
 @bp.route('/event/<int:event_id>/bookmark', methods=['POST'])
 @login_required
 def bookmark_event(event_id):
     event = Event.query.get_or_404(event_id)
+    action = 'bookmarked'
     if event in current_user.bookmarked_events:
         current_user.bookmarked_events.remove(event)
+        action = 'unbookmarked'
         flash('Event removed from bookmarks.', 'info')
     else:
         current_user.bookmarked_events.append(event)
         flash('Event saved to bookmarks!', 'success')
     db.session.commit()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or 'application/json' in request.accept_mimetypes:
+        return {'status': 'success', 'action': action}
     return redirect(url_for('main.event_detail', event_id=event_id))
 
 @bp.route('/event/<int:event_id>/comment/<int:comment_id>/delete', methods=['POST'])

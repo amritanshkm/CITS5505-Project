@@ -8,7 +8,6 @@
         .site-header.hero-header {
             position: relative;
             border-radius: 1.5rem;
-            margin-bottom: -30px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
@@ -94,10 +93,10 @@
         <div class="brand-block" style="position: relative; z-index: 2;">
             <p class="eyebrow"><i class="bi bi-tag-fill me-1"></i>{{ event.category }}</p>
             <h1 class="fw-bold display-5 text-white mb-3" style="text-shadow: 0 2px 5px rgba(0,0,0,0.2);">{{ event.title }}</h1>
-            <div class="d-flex flex-wrap gap-4 text-white opacity-75 fw-medium">
-                <div><i class="bi bi-calendar-event me-2"></i>{{ event.date }}</div>
-                <div><i class="bi bi-clock me-2"></i>{{ event.time }}</div>
-                <div><i class="bi bi-geo-alt-fill me-2"></i>{{ event.location }}</div>
+            <div class="d-flex flex-wrap gap-3 text-white fw-medium mt-3">
+                <div class="bg-white bg-opacity-25 px-3 py-2 rounded-3 border border-white border-opacity-25 shadow-sm"><i class="bi bi-calendar-event me-2"></i>{{ event.date | aus_date }}</div>
+                <div class="bg-white bg-opacity-25 px-3 py-2 rounded-3 border border-white border-opacity-25 shadow-sm"><i class="bi bi-clock me-2"></i>{{ event.time }}</div>
+                <div class="bg-white bg-opacity-25 px-3 py-2 rounded-3 border border-white border-opacity-25 shadow-sm"><i class="bi bi-geo-alt-fill me-2"></i>{{ event.location }}</div>
             </div>
         </div>
     </header>
@@ -186,9 +185,10 @@
                                         <p class="mb-0 text-secondary" style="white-space: pre-wrap;">{{ comment.content }}</p>
                                         
                                         <div class="action-btn-group mt-2 pt-2 border-top">
-                                            <form method="POST" action="{{ url_for('main.like_comment', event_id=event_id, comment_id=comment.id) }}" class="m-0">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill fw-semibold bg-white px-3 shadow-sm">
-                                                    <i class="bi bi-heart-fill"></i> <span class="ms-1">{{ comment.likes }}</span>
+                                            <form method="POST" action="{{ url_for('main.like_comment', event_id=event_id, comment_id=comment.id) }}" class="m-0 ajax-form-comment">
+                                                {% set current_user_liked_comment = current_user.is_authenticated and current_user in comment.liked_by %}
+                                                <button type="submit" class="btn btn-sm {% if current_user_liked_comment %}btn-danger text-white{% else %}btn-outline-danger bg-white{% endif %} rounded-pill fw-semibold shadow-sm px-3 comment-like-btn">
+                                                    <i class="bi {% if current_user_liked_comment %}bi-heart-fill{% else %}bi-heart{% endif %}"></i> <span class="ms-1 like-count">{{ comment.likes }}</span>
                                                 </button>
                                             </form>
                                             {% if is_creator or comment.user_id == current_user_id %}
@@ -213,7 +213,7 @@
             </section>
         </div>
 
-        <aside class="map-panel shadow-sm border-0 d-flex flex-column gap-4 sticky-top" style="top: 2rem;">
+        <aside class="map-panel shadow-sm border-0 d-flex flex-column gap-4" style="margin-top: 0;">
             
             <!-- Registration Card -->
             <div class="border rounded-4 p-4 text-center bg-white shadow-sm">
@@ -248,14 +248,14 @@
                 {% endif %}
 
                 <div class="d-flex justify-content-center gap-2 mt-3">
-                    <form method="POST" action="{{ url_for('main.like_event', event_id=event.id) }}" class="m-0">
-                        <button type="submit" class="btn btn-outline-danger rounded-pill px-4 fw-semibold hover-scale">
-                            <i class="bi bi-suit-heart-fill me-1"></i> <span>{% if user_liked %}Unlike{% else %}Like{% endif %}</span>
+                    <form method="POST" action="{{ url_for('main.like_event', event_id=event.id) }}" class="m-0 ajax-form">
+                        <button type="submit" id="likeBtn" class="btn {% if user_liked %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-4 fw-semibold hover-scale">
+                            <i class="bi bi-suit-heart-fill me-1"></i> <span id="likeText">{% if user_liked %}Unlike{% else %}Like{% endif %}</span>
                         </button>
                     </form>
-                    <form method="POST" action="{{ url_for('main.bookmark_event', event_id=event.id) }}" class="m-0">
-                        <button type="submit" class="btn btn-outline-primary rounded-pill px-4 fw-semibold hover-scale">
-                            <i class="bi bi-bookmark-plus-fill me-1"></i> <span>{% if user_bookmarked %}Saved{% else %}Save{% endif %}</span>
+                    <form method="POST" action="{{ url_for('main.bookmark_event', event_id=event.id) }}" class="m-0 ajax-form">
+                        <button type="submit" id="bookmarkBtn" class="btn {% if user_bookmarked %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill px-4 fw-semibold hover-scale">
+                            <i class="bi bi-bookmark-plus-fill me-1"></i> <span id="bookmarkText">{% if user_bookmarked %}Saved{% else %}Save{% endif %}</span>
                         </button>
                     </form>
                 </div>
@@ -291,6 +291,89 @@
                     focusEventOnMap(card);
                 }
             }, 300);
+
+            // AJAX Form Submissions
+            document.querySelectorAll('.ajax-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const btn = this.querySelector('button[type="submit"]');
+                    const textSpan = btn.querySelector('span');
+                    const isLikeBtn = btn.id === 'likeBtn';
+                    const isBookmarkBtn = btn.id === 'bookmarkBtn';
+
+                    fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            if (isLikeBtn) {
+                                if (data.action === 'liked') {
+                                    btn.classList.remove('btn-outline-danger');
+                                    btn.classList.add('btn-danger');
+                                    textSpan.innerText = 'Unlike';
+                                } else {
+                                    btn.classList.remove('btn-danger');
+                                    btn.classList.add('btn-outline-danger');
+                                    textSpan.innerText = 'Like';
+                                }
+                            } else if (isBookmarkBtn) {
+                                if (data.action === 'bookmarked') {
+                                    btn.classList.remove('btn-outline-primary');
+                                    btn.classList.add('btn-primary');
+                                    textSpan.innerText = 'Saved';
+                                } else {
+                                    btn.classList.remove('btn-primary');
+                                    btn.classList.add('btn-outline-primary');
+                                    textSpan.innerText = 'Save';
+                                }
+                            }
+                        }
+                    })
+                    .catch(err => console.error('AJAX Error:', err));
+                });
+            });
+            // AJAX Form Submissions for Comment Likes
+            document.querySelectorAll('.ajax-form-comment').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const btn = this.querySelector('.comment-like-btn');
+                    const icon = btn.querySelector('i');
+                    const countSpan = btn.querySelector('.like-count');
+
+                    fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            countSpan.innerText = data.likes;
+                            if (data.action === 'liked') {
+                                btn.classList.remove('btn-outline-danger', 'bg-white');
+                                btn.classList.add('btn-danger', 'text-white');
+                                icon.classList.remove('bi-heart');
+                                icon.classList.add('bi-heart-fill');
+                            } else {
+                                btn.classList.remove('btn-danger', 'text-white');
+                                btn.classList.add('btn-outline-danger', 'bg-white');
+                                icon.classList.remove('bi-heart-fill');
+                                icon.classList.add('bi-heart');
+                            }
+                        }
+                    })
+                    .catch(err => console.error('AJAX Error:', err));
+                });
+            });
         });
     </script>
 {% endblock %}

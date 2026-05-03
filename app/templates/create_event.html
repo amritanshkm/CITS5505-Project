@@ -24,16 +24,22 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6 mb-4">
                             {{ form.date.label(class="form-label fw-semibold") }}
-                            {{ form.date(class="form-control form-control-lg") }}
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-muted"><i class="bi bi-calendar3"></i></span>
+                                {{ form.date(class="form-control form-control-lg border-start-0 ps-0") }}
+                            </div>
                             {% for error in form.date.errors %}
                                 <div class="text-danger small mt-1">{{ error }}</div>
                             {% endfor %}
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6 mb-4">
                             {{ form.time.label(class="form-label fw-semibold") }}
-                            {{ form.time(class="form-control form-control-lg") }}
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-muted"><i class="bi bi-clock"></i></span>
+                                {{ form.time(class="form-control form-control-lg border-start-0 ps-0") }}
+                            </div>
                             {% for error in form.time.errors %}
                                 <div class="text-danger small mt-1">{{ error }}</div>
                             {% endfor %}
@@ -41,9 +47,12 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-12 mb-3">
+                        <div class="col-md-12 mb-4">
                             {{ form.location.label(class="form-label fw-semibold") }}
-                            {{ form.location(class="form-control form-control-lg", id="location", placeholder="e.g. Perth CBD or click on map") }}
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-danger"><i class="bi bi-geo-alt-fill"></i></span>
+                                {{ form.location(class="form-control form-control-lg border-start-0 ps-0", id="location", placeholder="e.g. Perth CBD or click on map") }}
+                            </div>
                             {% for error in form.location.errors %}
                                 <div class="text-danger small mt-1">{{ error }}</div>
                             {% endfor %}
@@ -54,24 +63,35 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
+                    <div class="row align-items-start">
+                        <div class="col-md-4 mb-4">
                             {{ form.category.label(class="form-label fw-semibold") }}
-                            {{ form.category(class="form-select form-select-lg") }}
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-primary"><i class="bi bi-tags-fill"></i></span>
+                                {{ form.category(class="form-select form-select-lg border-start-0 ps-0") }}
+                            </div>
                             {% for error in form.category.errors %}
                                 <div class="text-danger small mt-1">{{ error }}</div>
                             {% endfor %}
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-4 mb-4">
                             {{ form.capacity.label(class="form-label fw-semibold") }}
-                            {{ form.capacity(class="form-control form-control-lg", placeholder="", type="number", min="1") }}
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-success"><i class="bi bi-people-fill"></i></span>
+                                {{ form.capacity(class="form-control form-control-lg border-start-0 ps-0", placeholder="No limit", type="number", min="1") }}
+                            </div>
+                            <small class="text-muted">Leave blank for unlimited.</small>
                             {% for error in form.capacity.errors %}
                                 <div class="text-danger small mt-1">{{ error }}</div>
                             {% endfor %}
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-4 mb-4">
                             {{ form.price_label.label(class="form-label fw-semibold") }}
-                            {{ form.price_label(class="form-control form-control-lg", placeholder="Free or $10") }}
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-warning"><i class="bi bi-currency-dollar"></i></span>
+                                {{ form.price_label(class="form-control form-control-lg border-start-0 ps-0", placeholder="Free or $10") }}
+                            </div>
+                            <small class="text-muted">Type "Free" or amount.</small>
                             {% for error in form.price_label.errors %}
                                 <div class="text-danger small mt-1">{{ error }}</div>
                             {% endfor %}
@@ -81,7 +101,10 @@
                     <div class="row">
                         <div class="col-md-12 mb-4">
                             {{ form.description.label(class="form-label fw-semibold") }}
-                            {{ form.description(class="form-control form-control-lg", rows="4", placeholder="Describe your event...") }}
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-secondary align-items-start pt-3"><i class="bi bi-card-text"></i></span>
+                                {{ form.description(class="form-control form-control-lg border-start-0 ps-0", rows="4", placeholder="Describe your event details clearly...") }}
+                            </div>
                             {% for error in form.description.errors %}
                                 <div class="text-danger small mt-1">{{ error }}</div>
                             {% endfor %}

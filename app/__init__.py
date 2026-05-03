@@ -8,7 +8,10 @@ migrate = Migrate()
 login = LoginManager()
 login.login_view = 'main.login'
 
-def create_app(config_class):
+def create_app(config_class=None):
+    if config_class is None:
+        from config import Config
+        config_class = Config
     app = Flask(__name__)
     app.config.from_object(config_class)
 
@@ -21,5 +24,14 @@ def create_app(config_class):
     app.register_blueprint(routes.bp)
 
     from app import models
+
+    # Add custom Jinja filter for Australian date formatting
+    @app.template_filter('aus_date')
+    def aus_date_filter(date_string):
+        try:
+            from datetime import datetime
+            return datetime.strptime(date_string, '%Y-%m-%d').strftime('%d/%m/%Y')
+        except (ValueError, TypeError):
+            return date_string
 
     return app

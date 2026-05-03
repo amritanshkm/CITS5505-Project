@@ -54,7 +54,7 @@
                 >
                     <span class="event-category">{{ event.category }}</span>
                     <h3>{{ event.title }}</h3>
-                    <p class="event-meta">{{ event.date }} · {{ event.time }} · {{ event.location }}</p>
+                    <p class="event-meta">{{ event.date | aus_date }} · {{ event.time }} · {{ event.location }}</p>
                     <p class="event-description">{{ event.description }}</p>
                     <div class="event-footer">
                         <span class="event-price {{ event.price_type }}">{{ event.price_label }}</span>
