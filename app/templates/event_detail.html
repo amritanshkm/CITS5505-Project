@@ -102,7 +102,7 @@
     </header>
 
     <section class="content-layout">
-        <div class="events-panel shadow-sm border-0 event-card"
+        <div class="events-panel shadow-sm border-0"
              data-title="{{ event.title }}"
              data-category="{{ event.category }}"
              data-price="{{ event.price_type }}"
@@ -285,7 +285,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const card = document.querySelector('.event-card');
+            const card = document.querySelector('.events-panel');
             setTimeout(() => {
                 if (typeof focusEventOnMap === 'function') {
                     focusEventOnMap(card);
