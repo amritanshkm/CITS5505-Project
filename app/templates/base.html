@@ -23,7 +23,10 @@
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link ms-2 fw-semibold" href="{{ url_for('main.profile') }}">My Profile</a>
+                        <a class="nav-link btn btn-outline-light ms-2 px-3 fw-semibold" href="{{ url_for('main.create_event') }}"><i class="bi bi-plus-circle me-1"></i> Create New Event</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link ms-3 fw-semibold" href="{{ url_for('main.profile') }}">My Profile</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
