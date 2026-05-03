@@ -1,10 +1,12 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField, HiddenField, IntegerField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange
 
 class ProfileUpdateForm(FlaskForm):
     nickname = StringField('Nickname', validators=[DataRequired(), Length(min=2, max=20)])
     email = StringField('Email', validators=[DataRequired(), Email()])
+    avatar = FileField('Profile Picture', validators=[Optional(), FileAllowed(['jpg', 'png'], 'Images only (JPG/PNG)!')])
     submit_profile = SubmitField('Update Profile')
 
     def validate_nickname(self, nickname):

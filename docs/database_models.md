@@ -11,6 +11,7 @@ Stores heavily encrypted and strictly sanitized user registration data.
 * `email`: String(120), Unique, Indexed
 * `password_hash`: String(128) - Must be salted via werkzeug.
 * `join_date`: DateTime, Default=UTC_Now.
+* `avatar`: LargeBinary (Nullable) - Stores user profile picture up to 2MB.
 
 ### 2. `Event` Model
 Represents the actual application events tied heavily to location/GIS approximations and commerce states.

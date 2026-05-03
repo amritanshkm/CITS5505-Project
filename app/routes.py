@@ -369,6 +369,15 @@ def profile():
     if profile_form.submit_profile.data and profile_form.validate_on_submit():
         current_user.nickname = profile_form.nickname.data
         current_user.email = profile_form.email.data
+        
+        # Handle Avatar Upload
+        if profile_form.avatar.data:
+            avatar_data = profile_form.avatar.data.read()
+            if len(avatar_data) > 2 * 1024 * 1024:
+                flash('Avatar file is too large! Maximum size is 2MB.', 'danger')
+                return redirect(url_for('main.profile'))
+            current_user.avatar = avatar_data
+            
         db.session.commit()
         flash('Profile information updated successfully!', 'success')
         return redirect(url_for('main.profile'))
@@ -395,3 +404,13 @@ def profile():
                            likes=current_user.liked_events.all() if current_user.is_authenticated else [],
                            my_events=current_user.created_events.all(),
                            orders=current_user.orders.order_by(Order.timestamp.desc()).all())
+
+@bp.route('/user/<int:user_id>/avatar')
+def user_avatar(user_id):
+    from app.models import User
+    from flask import current_app, redirect, url_for
+    user = User.query.get_or_404(user_id)
+    if user.avatar:
+        return current_app.response_class(user.avatar, mimetype='image/jpeg')
+    # If no avatar, just redirect or return 404 (we handle default in template)
+    return current_app.response_class(b'', mimetype='image/jpeg')

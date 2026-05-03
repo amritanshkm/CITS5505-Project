@@ -40,9 +40,13 @@
         <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
             <div class="card-body text-center py-5 bg-white">
                 <div class="mb-3 position-relative d-inline-block">
+                    {% if user.avatar %}
+                    <img src="{{ url_for('main.user_avatar', user_id=user.id) }}" class="rounded-circle shadow" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #4f46e5;">
+                    {% else %}
                     <div class="bg-theme text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 100px; height: 100px; font-size: 2.5rem; margin: 0 auto;">
                         {{ user.nickname[0] | upper }}
                     </div>
+                    {% endif %}
                 </div>
                 <h5 class="card-title fw-bold text-dark">{{ user.nickname }}</h5>
                 <p class="text-muted small mb-0">{{ user.email }}</p>
@@ -87,7 +91,7 @@
                     <!-- Personal Info Tab -->
                     <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">
                         <h4 class="mb-4 text-dark fw-bold border-bottom pb-3">Personal Information</h4>
-                        <form method="POST" action="">
+                        <form method="POST" action="" enctype="multipart/form-data" id="profileForm">
                             {{ profile_form.hidden_tag() }}
                             <div class="row mb-4">
                                 <div class="col-md-6">
@@ -105,6 +109,17 @@
                                     {% for error in profile_form.email.errors %}
                                         <div class="invalid-feedback">{{ error }}</div>
                                     {% endfor %}
+                                </div>
+                            </div>
+                            <div class="row mb-5">
+                                <div class="col-md-6">
+                                    {{ profile_form.avatar.label(class="form-label fw-semibold text-secondary") }}
+                                    {{ profile_form.avatar(class="form-control form-control-lg bg-light border-0", id="avatarInput", accept=".jpg,.jpeg,.png") }}
+                                    <div class="form-text">JPG or PNG only. Max size 2MB.</div>
+                                    {% for error in profile_form.avatar.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                    <div id="avatarError" class="text-danger small mt-1 d-none"></div>
                                 </div>
                             </div>
                             <div class="d-grid gap-2 d-md-flex justify-content-md-start">
@@ -323,4 +338,39 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarInput = document.getElementById('avatarInput');
+    const avatarError = document.getElementById('avatarError');
+    const profileForm = document.getElementById('profileForm');
+
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                // Check size (2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    avatarError.textContent = 'File is too large! Maximum size is 2MB.';
+                    avatarError.classList.remove('d-none');
+                    this.value = ''; // Clear input
+                    return;
+                }
+                
+                // Check extension
+                const allowedExtensions = /(\.jpg|\.jpeg|\.png)$/i;
+                if (!allowedExtensions.exec(file.name)) {
+                    avatarError.textContent = 'Invalid file type. Please upload a JPG or PNG.';
+                    avatarError.classList.remove('d-none');
+                    this.value = ''; // Clear input
+                    return;
+                }
+                
+                // If valid
+                avatarError.classList.add('d-none');
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

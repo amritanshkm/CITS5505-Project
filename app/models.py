@@ -25,6 +25,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), index=True, unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     join_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    avatar = db.Column(db.LargeBinary, nullable=True)
 
     # Relationships (One-to-Many)
     created_events = db.relationship('Event', backref='creator', lazy='dynamic')
