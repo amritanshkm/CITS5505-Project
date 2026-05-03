@@ -1,4 +1,5 @@
 import pytest
+import io
 from app.models import User
 from app import db
 from bs4 import BeautifulSoup
@@ -87,3 +88,60 @@ def test_login_failure_bad_password(client, app):
     
     assert response.status_code == 200
     assert b'Invalid email or password' in response.data
+
+def test_avatar_upload_success(client, app):
+    """UNIT TEST 6: Test that a valid avatar image is successfully uploaded and saved to DB."""
+    with app.app_context():
+        u = User(nickname='AvatarGuy', email='avatar@test.com')
+        u.set_password('mypassword')
+        db.session.add(u)
+        db.session.commit()
+    
+    # Login first
+    client.post('/login', data={'email': 'avatar@test.com', 'password': 'mypassword'}, follow_redirects=True)
+    
+    # Create a dummy image
+    image_data = b'fake_image_data'
+    data = {
+        'profile-nickname': 'AvatarGuy',
+        'profile-email': 'avatar@test.com',
+        'profile-avatar': (io.BytesIO(image_data), 'test_avatar.jpg'),
+        'profile-submit_profile': 'Update Profile'
+    }
+    
+    response = client.post('/profile', data=data, content_type='multipart/form-data', follow_redirects=True)
+    
+    assert response.status_code == 200
+    assert b'Profile information updated successfully!' in response.data
+    
+    with app.app_context():
+        u = User.query.filter_by(email='avatar@test.com').first()
+        assert u.avatar == image_data
+
+def test_avatar_upload_too_large(client, app):
+    """UNIT TEST 7: Test that an avatar file larger than 2MB is rejected by the backend."""
+    with app.app_context():
+        u = User(nickname='BigAvatarGuy', email='bigavatar@test.com')
+        u.set_password('mypassword')
+        db.session.add(u)
+        db.session.commit()
+    
+    client.post('/login', data={'email': 'bigavatar@test.com', 'password': 'mypassword'}, follow_redirects=True)
+    
+    # Create a 2.1MB dummy image
+    large_image_data = b'0' * (2 * 1024 * 1024 + 100)
+    data = {
+        'profile-nickname': 'BigAvatarGuy',
+        'profile-email': 'bigavatar@test.com',
+        'profile-avatar': (io.BytesIO(large_image_data), 'large_avatar.jpg'),
+        'profile-submit_profile': 'Update Profile'
+    }
+    
+    response = client.post('/profile', data=data, content_type='multipart/form-data', follow_redirects=True)
+    
+    assert response.status_code == 200
+    assert b'Avatar file is too large!' in response.data
+    
+    with app.app_context():
+        u = User.query.filter_by(email='bigavatar@test.com').first()
+        assert u.avatar is None
