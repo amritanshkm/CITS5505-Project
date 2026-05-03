@@ -1,130 +1,416 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm
+from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePasswordForm, CommentForm, CreateEventForm, AnnouncementForm, PaymentForm
+from flask_login import current_user, login_user, logout_user, login_required
+from app.models import User, Event, Comment, Announcement, Order
+from app import db
 
 bp = Blueprint('main', __name__)
 
-EVENTS = [
-    {
-        "title": "Tech Networking Night",
-        "date": "12 Apr",
-        "time": "6:00 PM",
-        "location": "Perth CBD",
-        "description": "Meet developers, designers, and founders for an evening of networking and startup conversations.",
-        "category": "Tech",
-        "price_label": "Free",
-        "price_type": "free",
-        "coords": [-31.9523, 115.8613],
-    },
-    {
-        "title": "Beginner Yoga in the Park",
-        "date": "13 Apr",
-        "time": "8:00 AM",
-        "location": "Kings Park",
-        "description": "A relaxed outdoor yoga session for beginners. Bring a mat, water bottle, and a friend.",
-        "category": "Wellness",
-        "price_label": "$10",
-        "price_type": "paid",
-        "coords": [-31.9617, 115.8327],
-    },
-    {
-        "title": "Startup Pitch Evening",
-        "date": "15 Apr",
-        "time": "7:00 PM",
-        "location": "Subiaco",
-        "description": "Watch early-stage founders pitch ideas, connect with mentors, and explore local startup opportunities.",
-        "category": "Business",
-        "price_label": "$15",
-        "price_type": "paid",
-        "coords": [-31.9478, 115.8233],
-    },
-    {
-        "title": "Sunset Beach Meetup",
-        "date": "16 Apr",
-        "time": "5:30 PM",
-        "location": "Cottesloe Beach",
-        "description": "Casual beach meetup with games, snacks, and a chance to make new friends while watching the sunset.",
-        "category": "Social",
-        "price_label": "Free",
-        "price_type": "free",
-        "coords": [-31.9937, 115.7528],
-    },
-]
 
 @bp.route('/')
 @bp.route('/index')
 def index():
-    return render_template('index.html', title='Home', events=EVENTS)
+    events = Event.query.all()
+    return render_template('index.html', title='Home', events=events)
 
-@bp.route('/event/<int:event_id>')
+@bp.route('/event/<int:event_id>', methods=['GET', 'POST'])
 def event_detail(event_id):
-    if event_id < 0 or event_id >= len(EVENTS):
-        flash('Event not found', 'danger')
-        return redirect(url_for('main.index'))
-    event = EVENTS[event_id]
-    return render_template('event_detail.html', title=event['title'], event=event, event_id=event_id)
+    event = Event.query.get_or_404(event_id)
+    
+    is_creator = current_user.is_authenticated and (event.creator_id == current_user.id)
+    
+    form = CommentForm()
+    if form.validate_on_submit():
+        if not current_user.is_authenticated:
+            flash('Please login to comment.', 'warning')
+            return redirect(url_for('main.login'))
+            
+        new_comment = Comment(
+            content=form.comment.data,
+            author=current_user,
+            event=event
+        )
+        db.session.add(new_comment)
+        db.session.commit()
+        flash('Comment posted successfully!', 'success')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+    
+    # Get comments and sort by timestamp descending
+    sorted_comments = event.comments.order_by(Comment.timestamp.desc()).all()
+    
+    # Get announcements and sort by timestamp descending (newest first)
+    sorted_announcements = event.announcements.order_by(Announcement.timestamp.desc()).all()
+    
+    announcement_form = AnnouncementForm()
+    
+    user_liked = False
+    user_bookmarked = False
+    if current_user.is_authenticated:
+        user_liked = event in current_user.liked_events
+        user_bookmarked = event in current_user.bookmarked_events
+        
+    spots_left = None
+    if event.capacity is not None:
+        spots_left = max(0, event.capacity - event.orders.count())
+    
+    return render_template('event_detail.html', title=event.title, event=event, event_id=event_id, 
+                           form=form, comments=sorted_comments, is_creator=is_creator, 
+                           announcements=sorted_announcements, announcement_form=announcement_form,
+                           current_user_id=current_user.id if current_user.is_authenticated else None,
+                           user_liked=user_liked, user_bookmarked=user_bookmarked, spots_left=spots_left)
+
+@bp.route('/event/<int:event_id>/comment/<int:comment_id>/like', methods=['POST'])
+@login_required
+def like_comment(event_id, comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    if current_user in comment.liked_by:
+        comment.liked_by.remove(current_user)
+        comment.likes -= 1
+        action = 'unliked'
+    else:
+        comment.liked_by.append(current_user)
+        comment.likes += 1
+        action = 'liked'
+    db.session.commit()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or 'application/json' in request.accept_mimetypes:
+        return {'status': 'success', 'action': action, 'likes': comment.likes}
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
+@bp.route('/event/<int:event_id>/like', methods=['POST'])
+@login_required
+def like_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    action = 'liked'
+    if event in current_user.liked_events:
+        current_user.liked_events.remove(event)
+        action = 'unliked'
+    else:
+        current_user.liked_events.append(event)
+    db.session.commit()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or 'application/json' in request.accept_mimetypes:
+        return {'status': 'success', 'action': action}
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
+@bp.route('/event/<int:event_id>/bookmark', methods=['POST'])
+@login_required
+def bookmark_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    action = 'bookmarked'
+    if event in current_user.bookmarked_events:
+        current_user.bookmarked_events.remove(event)
+        action = 'unbookmarked'
+        flash('Event removed from bookmarks.', 'info')
+    else:
+        current_user.bookmarked_events.append(event)
+        flash('Event saved to bookmarks!', 'success')
+    db.session.commit()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or 'application/json' in request.accept_mimetypes:
+        return {'status': 'success', 'action': action}
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
+@bp.route('/event/<int:event_id>/comment/<int:comment_id>/delete', methods=['POST'])
+@login_required
+def delete_comment(event_id, comment_id):
+    event = Event.query.get_or_404(event_id)
+    comment = Comment.query.get_or_404(comment_id)
+    
+    if comment.event_id != event.id:
+        flash('Comment mismatch.', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+        
+    is_creator = (event.creator_id == current_user.id)
+    is_sender = (comment.user_id == current_user.id)
+    
+    if not (is_creator or is_sender):
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+    
+    db.session.delete(comment)
+    db.session.commit()
+    flash('Comment deleted.', 'info')
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
+@bp.route('/event/<int:event_id>/announcement/create', methods=['POST'])
+@login_required
+def create_announcement(event_id):
+    event = Event.query.get_or_404(event_id)
+    if event.creator_id != current_user.id:
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+        
+    form = AnnouncementForm()
+    if form.validate_on_submit():
+        announcement = Announcement(
+            content=form.content.data,
+            event=event
+        )
+        db.session.add(announcement)
+        db.session.commit()
+        flash('Announcement added!', 'success')
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
+@bp.route('/event/<int:event_id>/announcement/<int:ann_id>/delete', methods=['POST'])
+@login_required
+def delete_announcement(event_id, ann_id):
+    event = Event.query.get_or_404(event_id)
+    if event.creator_id != current_user.id:
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+        
+    announcement = Announcement.query.get_or_404(ann_id)
+    if announcement.event_id != event.id:
+        flash('Mismatch warning', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event_id))
+        
+    db.session.delete(announcement)
+    db.session.commit()
+    flash('Announcement deleted.', 'info')
+    return redirect(url_for('main.event_detail', event_id=event_id))
+
+@bp.route('/event/<int:event_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    if event.creator_id != current_user.id:
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('main.profile'))
+        
+    form = CreateEventForm()
+    if form.validate_on_submit():
+        price_val = form.price_label.data.strip()
+        if price_val == "0" or price_val.lower() == "free":
+            price_label = "Free"
+            price_type = "free"
+        else:
+            price_label = price_val if "$" in price_val else f"${price_val}"
+            price_type = "paid"
+            
+        event.title = form.title.data
+        event.date = form.date.data
+        event.time = form.time.data
+        event.location = form.location.data
+        event.description = form.description.data
+        event.category = form.category.data
+        event.price_label = price_label
+        event.price_type = price_type
+        event.lat = float(form.lat.data)
+        event.lng = float(form.lng.data)
+        event.capacity = form.capacity.data
+        
+        db.session.commit()
+        flash('Event updated successfully!', 'success')
+        return redirect(url_for('main.profile'))
+        
+    if request.method == 'GET':
+        form.title.data = event.title
+        form.date.data = event.date
+        form.time.data = event.time
+        form.location.data = event.location
+        form.category.data = event.category
+        form.price_label.data = "0" if event.price_label == "Free" else event.price_label.replace('$', '')
+        form.description.data = event.description
+        form.lat.data = event.lat
+        form.lng.data = event.lng
+        form.capacity.data = event.capacity
+        
+    return render_template('create_event.html', title='Edit Event', form=form, is_edit=True)
+
+@bp.route('/event/<int:event_id>/delete', methods=['POST'])
+@login_required
+def delete_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    if event.creator_id != current_user.id:
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('main.profile'))
+        
+    db.session.delete(event)
+    db.session.commit()
+        
+    flash('Event deleted.', 'success')
+    return redirect(url_for('main.profile'))
+
+@bp.route('/event/<int:event_id>/join', methods=['POST'])
+@login_required
+def join_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    
+    if event.capacity is not None and event.orders.count() >= event.capacity:
+        flash('Registrations are full for this event.', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event.id))
+    
+    order = Order(
+        user_id=current_user.id,
+        event_id=event.id,
+        total=event.price_label,
+        status="Free Registration"
+    )
+    db.session.add(order)
+    db.session.commit()
+    
+    flash('Successfully joined the free event!', 'success')
+    return redirect(url_for('main.order_detail', order_id=order.order_id))
+
+@bp.route('/event/<int:event_id>/payment', methods=['GET', 'POST'])
+@login_required
+def payment(event_id):
+    event = Event.query.get_or_404(event_id)
+    
+    if event.capacity is not None and event.orders.count() >= event.capacity:
+        flash('Tickets are sold out for this event.', 'danger')
+        return redirect(url_for('main.event_detail', event_id=event.id))
+        
+    form = PaymentForm()
+    if form.validate_on_submit():
+        order = Order(
+            user_id=current_user.id,
+            event_id=event.id,
+            total=event.price_label,
+            status="Paid"
+        )
+        db.session.add(order)
+        db.session.commit()
+        
+        flash('Payment Successful! You have joined the event.', 'success')
+        return redirect(url_for('main.order_detail', order_id=order.order_id))
+        
+    return render_template('payment.html', title='Event Checkout', event=event, form=form)
+
+@bp.route('/order/<int:order_id>')
+@login_required
+def order_detail(order_id):
+    order = Order.query.get_or_404(order_id)
+    if order.user_id != current_user.id:
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('main.profile'))
+    return render_template('order_detail.html', title='Order Receipt', order=order)
+
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
     form = LoginForm()
     if form.validate_on_submit():
-        # TODO: integrate with actual User model handling
-        flash('Login successful (mock)!', 'success')
+        user = User.query.filter_by(email=form.email.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid email or password', 'danger')
+            return redirect(url_for('main.login'))
+        login_user(user)
+        flash('Login successful!', 'success')
         return redirect(url_for('main.index'))
     return render_template('login.html', title='Sign In', form=form)
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        # TODO: integrate with actual User model and db.session.commit()
-        flash('Registration successful (mock)!', 'success')
+        user = User(nickname=form.nickname.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('main.login'))
     return render_template('register.html', title='Register', form=form)
 
 @bp.route('/logout')
 def logout():
-    # TODO: integrate with flask_login
+    logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.index'))
 
-MOCK_USER = {
-    "nickname": "AgileDev",
-    "email": "agile@uwa.edu.au"
-}
 
-MOCK_COLLECTIONS = [
-    {"event": "Tech Networking Night", "date": "12 Apr, 2026", "location": "Perth CBD"},
-    {"event": "Beginner Yoga in the Park", "date": "13 Apr, 2026", "location": "Kings Park"}
-]
 
-MOCK_LIKES = [
-    {"event": "Startup Pitch Evening", "date": "15 Apr, 2026", "location": "Subiaco"},
-    {"event": "Sunset Beach Meetup", "date": "16 Apr, 2026", "location": "Cottesloe Beach"}
-]
+@bp.route('/event/create', methods=['GET', 'POST'])
+@login_required
+def create_event():
+    form = CreateEventForm()
+    if form.validate_on_submit():
+        price_val = form.price_label.data.strip()
+        if price_val == "0" or price_val.lower() == "free":
+            price_label = "Free"
+            price_type = "free"
+        else:
+            price_label = price_val if "$" in price_val else f"${price_val}"
+            price_type = "paid"
+            
+        event = Event(
+            title=form.title.data,
+            date=form.date.data,
+            time=form.time.data,
+            location=form.location.data,
+            description=form.description.data,
+            category=form.category.data,
+            price_label=price_label,
+            price_type=price_type,
+            lat=float(form.lat.data),
+            lng=float(form.lng.data),
+            capacity=form.capacity.data,
+            creator_id=current_user.id
+        )
+        db.session.add(event)
+        db.session.commit()
+        
+        flash('Event created successfully!', 'success')
+        return redirect(url_for('main.profile'))
+    return render_template('create_event.html', title='Create Event', form=form, is_edit=False)
+
 
 @bp.route('/profile', methods=['GET', 'POST'])
+@login_required
 def profile():
     profile_form = ProfileUpdateForm(prefix='profile')
     password_form = ChangePasswordForm(prefix='password')
     
-    if profile_form.submit_profile.data and profile_form.validate():
-        MOCK_USER['nickname'] = profile_form.nickname.data
-        MOCK_USER['email'] = profile_form.email.data
+    if profile_form.submit_profile.data and profile_form.validate_on_submit():
+        current_user.nickname = profile_form.nickname.data
+        current_user.email = profile_form.email.data
+        
+        # Handle Avatar Upload
+        if profile_form.avatar.data:
+            avatar_data = profile_form.avatar.data.read()
+            if len(avatar_data) > 2 * 1024 * 1024:
+                flash('Avatar file is too large! Maximum size is 2MB.', 'danger')
+                return redirect(url_for('main.profile'))
+            current_user.avatar = avatar_data
+            
+        db.session.commit()
         flash('Profile information updated successfully!', 'success')
         return redirect(url_for('main.profile'))
         
-    if password_form.submit_password.data and password_form.validate():
-        flash('Password changed successfully!', 'success')
+    if password_form.submit_password.data and password_form.validate_on_submit():
+        if not current_user.check_password(password_form.old_password.data):
+            flash('Incorrect current password.', 'danger')
+        else:
+            current_user.set_password(password_form.new_password.data)
+            db.session.commit()
+            flash('Password changed successfully!', 'success')
         return redirect(url_for('main.profile'))
         
     if request.method == 'GET':
-        profile_form.nickname.data = MOCK_USER['nickname']
-        profile_form.email.data = MOCK_USER['email']
+        profile_form.nickname.data = current_user.nickname
+        profile_form.email.data = current_user.email
         
     return render_template('profile.html', 
                            title='My Profile', 
                            profile_form=profile_form, 
                            password_form=password_form,
-                           user=MOCK_USER,
-                           collections=MOCK_COLLECTIONS,
-                           likes=MOCK_LIKES)
+                           user=current_user,
+                           collections=current_user.bookmarked_events.all() if current_user.is_authenticated else [],
+                           likes=current_user.liked_events.all() if current_user.is_authenticated else [],
+                           my_events=current_user.created_events.all(),
+                           orders=current_user.orders.order_by(Order.timestamp.desc()).all())
+
+@bp.route('/user/<int:user_id>/avatar')
+def user_avatar(user_id):
+    from app.models import User
+    from flask import current_app, redirect, url_for
+    user = User.query.get_or_404(user_id)
+    if user.avatar:
+        return current_app.response_class(user.avatar, mimetype='image/jpeg')
+    # If no avatar, just redirect or return 404 (we handle default in template)
+    return current_app.response_class(b'', mimetype='image/jpeg')

@@ -1,8 +1,0 @@
-refactor: merge main and resolve architectural conflicts
-
-- Migrated origin/main root structure into Application Factory architecture.
-- Re-routed EVENTS map logic from legacy app.py directly into app/routes.py.
-- Refactored index.html to integrate cleanly into base.html via Jinja blocks layout.
-- Migrated decoupled frontend Leaflet JS and map layout CSS to app/static/.
-- Updated README.md containing the finalized team details.
-- Cleaned up obsolete root directories.
