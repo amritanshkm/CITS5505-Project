@@ -42,3 +42,10 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Git messages
+.git_msg.txt
+
+# Database Secrets & Builds
+app.db
+ migrations/__pycache__/

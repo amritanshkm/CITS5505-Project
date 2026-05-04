@@ -54,11 +54,11 @@
                 >
                     <span class="event-category">{{ event.category }}</span>
                     <h3>{{ event.title }}</h3>
-                    <p class="event-meta">{{ event.date }} · {{ event.time }} · {{ event.location }}</p>
+                    <p class="event-meta">{{ event.date | aus_date }} · {{ event.time }} · {{ event.location }}</p>
                     <p class="event-description">{{ event.description }}</p>
                     <div class="event-footer">
                         <span class="event-price {{ event.price_type }}">{{ event.price_label }}</span>
-                        <a href="{{ url_for('main.event_detail', event_id=loop.index0) }}" class="btn btn-primary">View Details</a>
+                        <a href="{{ url_for('main.event_detail', event_id=event.id) }}" class="btn btn-primary">View Details</a>
                     </div>
                 </article>
                 {% endfor %}
