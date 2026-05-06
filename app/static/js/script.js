@@ -128,3 +128,32 @@ eventCards.forEach(function(card) {
 });
 
 applyFilters();
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const interestButtons =
+        document.querySelectorAll('.interest-btn');
+
+    interestButtons.forEach(button => {
+
+        button.addEventListener('click', () => {
+
+            button.classList.toggle('active');
+
+            if (button.classList.contains('active')) {
+
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-primary');
+
+            } else {
+
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-outline-primary');
+
+            }
+
+        });
+
+    });
+
+});
