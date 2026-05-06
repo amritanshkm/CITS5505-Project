@@ -3,6 +3,7 @@ from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePass
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Event, Comment, Announcement, Order
 from app import db
+from datetime import datetime
 
 bp = Blueprint('main', __name__)
 
@@ -414,3 +415,27 @@ def user_avatar(user_id):
         return current_app.response_class(user.avatar, mimetype='image/jpeg')
     # If no avatar, just redirect or return 404 (we handle default in template)
     return current_app.response_class(b'', mimetype='image/jpeg')
+
+@bp.route('/my-events')
+@login_required
+def my_events():
+
+    upcoming_events = []
+    past_events = []
+
+    today = datetime.now().date()
+
+    for order in current_user.orders:
+
+        event = order.event
+
+        if event.date >= today:
+            upcoming_events.append(event)
+        else:
+            past_events.append(event)
+
+    return render_template(
+        'my_events.html',
+        upcoming_events=upcoming_events,
+        past_events=past_events
+    )
