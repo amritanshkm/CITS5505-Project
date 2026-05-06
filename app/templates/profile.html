@@ -31,6 +31,22 @@
 .nav-pills .nav-link:hover:not(.active) {
     background-color: #f3f4f6;
 }
+
+.interest-btn {
+    transition: all 0.2s ease-in-out;
+    font-size: 0.85rem;
+}
+
+.interest-btn:hover {
+    transform: translateY(-2px);
+}
+
+.interest-btn.active {
+    background-color: #4f46e5 !important;
+    color: white !important;
+    border-color: #4f46e5 !important;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+}
 </style>
 {% endblock %}
 
@@ -74,7 +90,10 @@
                     <button class="nav-link text-start px-4 py-3 fw-semibold d-flex align-items-center" id="v-pills-security-tab" data-bs-toggle="pill" data-bs-target="#v-pills-security" type="button" role="tab" aria-controls="v-pills-security" aria-selected="false">
                         <i class="bi bi-shield-lock me-3 fs-5"></i> Security
                     </button>
-                    <div class="border-top my-2 mx-3"></div>
+                    <button class="nav-link text-start px-4 py-3 fw-semibold d-flex align-items-center" id="v-pills-interests-tab" data-bs-toggle="pill" data-bs-target="#v-pills-interests" type="button" role="tab" aria-controls="v-pills-interests" aria-selected="false">
+                        <i class="bi bi-stars me-3 fs-5"></i> My Interests
+                    </button>
+
                     <button class="btn btn-danger text-start px-4 py-3 fw-bold d-flex align-items-center mx-2 rounded-3 mt-2" data-bs-toggle="modal" data-bs-target="#logoutModal" type="button">
                         <i class="bi bi-box-arrow-right me-3 fs-5"></i> Logout
                     </button>
@@ -127,6 +146,8 @@
                             </div>
                         </form>
                     </div>
+
+                    
 
                     <!-- My Bookmarks Tab -->
                     <div class="tab-pane fade" id="v-pills-collections" role="tabpanel" aria-labelledby="v-pills-collections-tab">
@@ -311,6 +332,81 @@
                         </form>
                     </div>
 
+                    <!-- Interests Tab -->
+                    <div class="tab-pane fade" id="v-pills-interests" role="tabpanel" aria-labelledby="v-pills-interests-tab">
+
+                        <h4 class="mb-4 text-dark fw-bold border-bottom pb-3">
+                            My Interests
+                        </h4>
+
+                        <div class="card border-0 shadow-sm rounded-4 bg-light">
+
+                            <div class="card-body p-4 p-md-5">
+
+                                <div class="d-flex align-items-center mb-4">
+
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3"
+                                         style="width: 60px; height: 60px;">
+                                        <i class="bi bi-stars fs-3"></i>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="fw-bold mb-1 text-dark">
+                                            Choose Your Interests
+                                        </h4>
+
+                                        <p class="text-muted mb-0">
+                                            Select multiple interests to personalize your event discovery experience.
+                                        </p>
+                                    </div>
+
+                                </div>
+
+                                <div class="d-flex flex-wrap gap-3 mt-4">
+
+                                    <button type="button"
+                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
+                                        🎵 Music
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
+                                        🍔 Food & Drink
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
+                                        🧘 Health & Wellness
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
+                                        🏡 Home & Lifestyle
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
+                                        ⚽ Sports
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
+                                        💻 Technology
+                                    </button>
+
+                                </div>
+
+                                <div class="alert alert-light border rounded-4 mt-5 mb-0">
+                                    <i class="bi bi-info-circle me-2 text-primary"></i>
+                                    Your selected interests will help personalize future event recommendations.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -371,6 +467,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    const interestButtons = document.querySelectorAll('.interest-btn');
+
+    interestButtons.forEach(button => {
+        button.addEventListener('click', () => {
+
+            button.classList.toggle('active');
+
+            if (button.classList.contains('active')) {
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-primary');
+            } else {
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-outline-primary');
+            }
+        });
+    });
 });
 </script>
 {% endblock %}
