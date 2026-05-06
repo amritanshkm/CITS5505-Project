@@ -260,6 +260,16 @@
                     </form>
                 </div>
             </div>
+            <div class="text-center mt-3">
+                <button class="btn btn-outline-secondary rounded-pill px-4 fw-semibold hover-scale"
+                        onclick="shareEvent()">
+                    <i class="bi bi-share-fill me-1"></i> Share Event
+                </button>
+            
+                <div id="share-toast" class="text-success fw-semibold mt-2" style="display:none;">
+                    Link copied successfully!
+                </div>
+            </div>
 
             <div class="border rounded-4 overflow-hidden shadow-sm bg-white">
                 <div class="bg-light p-3 border-bottom">
@@ -283,7 +293,19 @@
             likes = likes + 1;
             document.getElementById("likeCount").innerText = likes;
         }
+        function shareEvent() {
+    navigator.clipboard.writeText(window.location.href);
 
+    const toast = document.getElementById('share-toast');
+
+    toast.style.display = 'block';
+
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 2000);
+}
+
+        
         document.addEventListener('DOMContentLoaded', () => {
             const card = document.querySelector('.events-panel');
             setTimeout(() => {
