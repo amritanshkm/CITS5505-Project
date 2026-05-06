@@ -414,3 +414,13 @@ def user_avatar(user_id):
         return current_app.response_class(user.avatar, mimetype='image/jpeg')
     # If no avatar, just redirect or return 404 (we handle default in template)
     return current_app.response_class(b'', mimetype='image/jpeg')
+
+@bp.route('/saved-events')
+@login_required
+def saved_events():
+    bookmarked_events = current_user.bookmarked_events
+
+    return render_template(
+        'saved_events.html',
+        events=bookmarked_events
+    )
