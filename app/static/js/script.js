@@ -128,3 +128,40 @@ eventCards.forEach(function(card) {
 });
 
 applyFilters();
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const locationFilter =
+        document.getElementById('locationFilter');
+
+    if (locationFilter) {
+
+        locationFilter.addEventListener('change', () => {
+
+            const selectedLocation =
+                locationFilter.value.toLowerCase();
+
+            const cards =
+                document.querySelectorAll('.event-card');
+
+            cards.forEach(card => {
+
+                const location =
+                    card.dataset.location.toLowerCase();
+
+                if (
+                    selectedLocation === '' ||
+                    location.includes(selectedLocation)
+                ) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+
+            });
+
+        });
+
+    }
+
+});
