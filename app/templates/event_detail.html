@@ -3,8 +3,6 @@
 {% block extra_head %}
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        /* Specific Styles for Event Detail unity with the overall theme */
-        
         .site-header.hero-header {
             position: relative;
             border-radius: 1.5rem;
@@ -16,7 +14,7 @@
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             background: url("https://source.unsplash.com/1200x500/?{{ event.category | urlencode }}") center/cover no-repeat;
-            opacity: 0.2; /* Subtly integrate with the indigo gradient of site-header */
+            opacity: 0.2;
             z-index: 1;
             mix-blend-mode: overlay;
         }
@@ -32,7 +30,6 @@
             color: #475569;
         }
 
-        /* Comments Area */
         .input-bubble {
             background: #ffffff;
             border: 2px solid #e2e8f0;
@@ -63,14 +60,13 @@
             border: 1px solid #e2e8f0;
             position: relative;
         }
-        
+
         .announcement-card {
             background: linear-gradient(135deg, #fffbeb, #fef3c7);
             border-left: 5px solid #f59e0b;
             border-radius: 1rem;
         }
-        
-        /* Typography overrides for nicer rendering */
+
         h3.section-title {
             font-weight: 700;
             font-size: 1.4rem;
@@ -109,18 +105,17 @@
              data-location="{{ event.location }}"
              data-lat="{{ event.coords[0] }}"
              data-lng="{{ event.coords[1] }}">
-            
+
             <h3 class="section-title"><i class="bi bi-info-circle-fill text-primary me-2"></i>About the Event</h3>
             <p class="event-description mb-5">{{ event.description }}</p>
 
-            <!-- Announcements Component -->
             {% if announcements or is_creator %}
             <div class="announcement-card p-4 mb-5 shadow-sm">
                 <div class="d-flex align-items-center mb-4">
                     <i class="bi bi-megaphone-fill text-warning fs-3 me-3"></i>
                     <h4 class="fw-bold text-dark mb-0">Announcements</h4>
                 </div>
-                
+
                 {% if is_creator %}
                 <form method="POST" action="{{ url_for('main.create_announcement', event_id=event_id) }}" class="mb-4">
                     {{ announcement_form.hidden_tag() }}
@@ -152,10 +147,9 @@
 
             <hr class="my-5 border-secondary-subtle">
 
-            <!-- Comments & Discussion -->
             <section class="comments-section" id="comments">
                 <h3 class="section-title"><i class="bi bi-chat-left-dots-fill text-primary me-2"></i>Discussion Board</h3>
-                
+
                 <div class="input-bubble mb-5">
                     <h6 class="fw-bold mb-3 text-secondary ps-2">Share your thoughts</h6>
                     <form method="POST" action="">
@@ -183,7 +177,7 @@
                                     </div>
                                     <div class="chat-bubble shadow-sm">
                                         <p class="mb-0 text-secondary" style="white-space: pre-wrap;">{{ comment.content }}</p>
-                                        
+
                                         <div class="action-btn-group mt-2 pt-2 border-top">
                                             <form method="POST" action="{{ url_for('main.like_comment', event_id=event_id, comment_id=comment.id) }}" class="m-0 ajax-form-comment">
                                                 {% set current_user_liked_comment = current_user.is_authenticated and current_user in comment.liked_by %}
@@ -214,51 +208,144 @@
         </div>
 
         <aside class="map-panel shadow-sm border-0 d-flex flex-column gap-4" style="margin-top: 0;">
-            
-            <!-- Registration Card -->
-            <div class="border rounded-4 p-4 text-center bg-white shadow-sm">
-                <p class="text-muted fw-bold text-uppercase small tracking-wide mb-2">Registration</p>
-                <div class="display-5 fw-bold text-dark mb-4">
-                    {% if event.price_type == 'free' %}
-                        <span class="text-success">Free</span>
-                    {% else %}
-                        {{ event.price_label }}
-                    {% endif %}
+
+            <div class="border rounded-4 p-4 bg-white shadow-sm">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <p class="text-muted fw-bold text-uppercase small tracking-wide mb-1">Registration</p>
+                        <div class="display-5 fw-bold text-dark mb-2">
+                            {% if event.price_type == 'free' %}
+                                <span class="text-success">Free</span>
+                            {% else %}
+                                {{ event.price_label }}
+                            {% endif %}
+                        </div>
+                        <p id="capacitySummary" class="text-muted mb-0">
+                            {{ attendee_count }} registered{% if event.capacity is not none %} · {{ event.capacity }} capacity{% endif %}
+                        </p>
+                    </div>
+
+                    <span id="soldOutBadge" class="badge rounded-pill {% if capacity_reached %}text-bg-danger{% else %}d-none{% endif %}">
+                        Sold Out
+                    </span>
                 </div>
 
                 {% if spots_left is not none %}
-                    {% if spots_left == 0 %}
-                        <div class="alert alert-danger fw-bold rounded-pill mb-4" role="alert">Sold Out</div>
-                    {% else %}
-                        <div class="alert alert-info fw-semibold rounded-pill mb-4" role="alert">{{ spots_left }} spots remaining!</div>
-                    {% endif %}
+                    <div id="spotsBadge" class="alert {% if capacity_reached %}alert-danger{% else %}alert-info{% endif %} fw-semibold rounded-pill mb-4" role="alert">
+                        {% if capacity_reached %}
+                            0 spots remaining
+                        {% else %}
+                            {{ spots_left }} spots remaining
+                        {% endif %}
+                    </div>
                 {% endif %}
 
                 {% if event.price_type == 'free' %}
-                <form method="POST" action="{{ url_for('main.join_event', event_id=event.id) }}">
-                    <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill shadow-sm fw-bold mb-3 hover-scale" {% if spots_left is not none and spots_left == 0 %}disabled{% endif %}>
-                        <i class="bi bi-check-circle-fill me-2"></i> Join Event
+                <form method="POST" action="{{ url_for('main.join_event', event_id=event.id) }}" id="joinForm">
+                    <button
+                        type="submit"
+                        id="joinBtn"
+                        class="btn {% if user_joined %}btn-outline-secondary{% else %}btn-success{% endif %} btn-lg w-100 rounded-pill shadow-sm fw-bold mb-2 hover-scale"
+                        {% if capacity_reached and not user_joined %}disabled{% endif %}
+                    >
+                        <i id="joinIcon" class="bi {% if user_joined %}bi-door-open-fill{% else %}bi-check-circle-fill{% endif %} me-2"></i>
+                        <span id="joinText">
+                            {% if user_joined %}
+                                Leave Event
+                            {% else %}
+                                Join Event
+                            {% endif %}
+                        </span>
                     </button>
                 </form>
+                <p id="joinFeedback" class="small text-muted text-center mb-0">
+                    {% if user_joined %}
+                        You are currently registered for this event.
+                    {% elif capacity_reached %}
+                        Registrations are currently full.
+                    {% else %}
+                        Reserve your spot instantly for this free event.
+                    {% endif %}
+                </p>
                 {% else %}
-                <a href="{% if spots_left is none or spots_left != 0 %}{{ url_for('main.payment', event_id=event.id) }}{% else %}#{% endif %}" 
-                   class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm fw-bold mb-3 hover-scale {% if spots_left is not none and spots_left == 0 %}disabled{% endif %}">
+                <a href="{% if spots_left is none or spots_left != 0 %}{{ url_for('main.payment', event_id=event.id) }}{% else %}#{% endif %}"
+                   class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm fw-bold mb-2 hover-scale {% if spots_left is not none and spots_left == 0 %}disabled{% endif %}">
                     <i class="bi bi-credit-card-fill me-2"></i> Proceed to Checkout
                 </a>
+                <p class="small text-muted text-center mb-0">
+                    Complete payment using the PayID / bank transfer details below.
+                </p>
                 {% endif %}
 
-                <div class="d-flex justify-content-center gap-2 mt-3">
-                    <form method="POST" action="{{ url_for('main.like_event', event_id=event.id) }}" class="m-0 ajax-form">
+                <div class="d-flex justify-content-center gap-2 mt-4 flex-wrap">
+                    <form method="POST" action="{{ url_for('main.like_event', event_id=event.id) }}" class="m-0" id="likeForm">
                         <button type="submit" id="likeBtn" class="btn {% if user_liked %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-4 fw-semibold hover-scale">
-                            <i class="bi bi-suit-heart-fill me-1"></i> <span id="likeText">{% if user_liked %}Unlike{% else %}Like{% endif %}</span>
+                            <i id="likeIcon" class="bi {% if user_liked %}bi-heart-fill{% else %}bi-heart{% endif %} me-1"></i>
+                            <span id="likeText">{% if user_liked %}Liked{% else %}Like{% endif %}</span>
+                            <span id="likeCount" class="badge text-bg-light ms-2">{{ like_count }}</span>
                         </button>
                     </form>
-                    <form method="POST" action="{{ url_for('main.bookmark_event', event_id=event.id) }}" class="m-0 ajax-form">
+
+                    <form method="POST" action="{{ url_for('main.bookmark_event', event_id=event.id) }}" class="m-0 ajax-bookmark-form">
                         <button type="submit" id="bookmarkBtn" class="btn {% if user_bookmarked %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill px-4 fw-semibold hover-scale">
-                            <i class="bi bi-bookmark-plus-fill me-1"></i> <span id="bookmarkText">{% if user_bookmarked %}Saved{% else %}Save{% endif %}</span>
+                            <i class="bi bi-bookmark-plus-fill me-1"></i>
+                            <span id="bookmarkText">{% if user_bookmarked %}Saved{% else %}Save{% endif %}</span>
                         </button>
                     </form>
                 </div>
+            </div>
+
+            <div class="border rounded-4 p-4 bg-white shadow-sm">
+                <div class="rounded-4 p-3 mb-3 text-white shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
+                    <p class="small text-uppercase fw-bold mb-1 opacity-75">PayID / Bank Transfer</p>
+                    <h5 class="fw-bold mb-1">events@eventhub.com.au</h5>
+                    <p class="mb-0 small opacity-75">Use your event reference when making a transfer.</p>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="bg-light rounded-4 p-3 h-100">
+                            <div class="text-muted text-uppercase small fw-semibold">Account Name</div>
+                            <div class="fw-bold">EventHub Pty Ltd</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light rounded-4 p-3 h-100">
+                            <div class="text-muted text-uppercase small fw-semibold">BSB</div>
+                            <div class="fw-bold">062-000</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light rounded-4 p-3 h-100">
+                            <div class="text-muted text-uppercase small fw-semibold">Account Number</div>
+                            <div class="fw-bold">12345678</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light rounded-4 p-3 h-100">
+                            <div class="text-muted text-uppercase small fw-semibold">Amount</div>
+                            <div class="fw-bold">{% if event.price_type == 'free' %}No payment required{% else %}{{ event.price_label }}{% endif %}</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="bg-light rounded-4 p-3">
+                            <div class="text-muted text-uppercase small fw-semibold">Reference</div>
+                            <div class="fw-bold">EVENT-{{ event.id }}{% if current_user.is_authenticated %}-{{ current_user.id }}{% endif %}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if event.price_type == 'free' %}
+                    <div class="alert alert-success rounded-4 mt-3 mb-0">
+                        This event is free, so no transfer is needed. The payment block is displayed for consistency across event pages.
+                    </div>
+                {% else %}
+                    <ol class="small text-muted mt-3 mb-0 ps-3">
+                        <li>Transfer the exact event amount using the PayID above.</li>
+                        <li>Use the displayed reference so the organiser can match your payment.</li>
+                        <li>After payment, keep your confirmation for check-in if requested.</li>
+                    </ol>
+                {% endif %}
             </div>
 
             <div class="border rounded-4 overflow-hidden shadow-sm bg-white">
@@ -269,80 +356,160 @@
                     <div id="map" class="w-100 h-100"></div>
                 </div>
             </div>
-
         </aside>
     </section>
 {% endblock %}
 
 {% block extra_scripts %}
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <script>
-        let likes = 0;
-        function increaseLike() {
-            likes = likes + 1;
-            document.getElementById("likeCount").innerText = likes;
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             const card = document.querySelector('.events-panel');
+            const capacity = {{ event.capacity|tojson }};
+
             setTimeout(() => {
                 if (typeof focusEventOnMap === 'function') {
                     focusEventOnMap(card);
                 }
             }, 300);
 
-            // AJAX Form Submissions
-            document.querySelectorAll('.ajax-form').forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const btn = this.querySelector('button[type="submit"]');
-                    const textSpan = btn.querySelector('span');
-                    const isLikeBtn = btn.id === 'likeBtn';
-                    const isBookmarkBtn = btn.id === 'bookmarkBtn';
+            $('#likeForm').on('submit', function (e) {
+                e.preventDefault();
 
-                    fetch(this.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
+                $.ajax({
+                    url: this.action,
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    success: function (data) {
+                        $('#likeCount').text(data.like_count);
+
+                        if (data.action === 'liked') {
+                            $('#likeBtn').removeClass('btn-outline-danger').addClass('btn-danger');
+                            $('#likeIcon').removeClass('bi-heart').addClass('bi-heart-fill');
+                            $('#likeText').text('Liked');
+                        } else {
+                            $('#likeBtn').removeClass('btn-danger').addClass('btn-outline-danger');
+                            $('#likeIcon').removeClass('bi-heart-fill').addClass('bi-heart');
+                            $('#likeText').text('Like');
                         }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            if (isLikeBtn) {
-                                if (data.action === 'liked') {
-                                    btn.classList.remove('btn-outline-danger');
-                                    btn.classList.add('btn-danger');
-                                    textSpan.innerText = 'Unlike';
-                                } else {
-                                    btn.classList.remove('btn-danger');
-                                    btn.classList.add('btn-outline-danger');
-                                    textSpan.innerText = 'Like';
-                                }
-                            } else if (isBookmarkBtn) {
-                                if (data.action === 'bookmarked') {
-                                    btn.classList.remove('btn-outline-primary');
-                                    btn.classList.add('btn-primary');
-                                    textSpan.innerText = 'Saved';
-                                } else {
-                                    btn.classList.remove('btn-primary');
-                                    btn.classList.add('btn-outline-primary');
-                                    textSpan.innerText = 'Save';
-                                }
-                            }
-                        }
-                    })
-                    .catch(err => console.error('AJAX Error:', err));
+                    },
+                    error: function () {
+                        console.error('Failed to update like state.');
+                    }
                 });
             });
-            // AJAX Form Submissions for Comment Likes
+
+            $('#joinForm').on('submit', function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: this.action,
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    success: function (data) {
+                        if (capacity !== null) {
+                            $('#capacitySummary').text(`${data.attendee_count} registered · ${capacity} capacity`);
+
+                            if (data.sold_out) {
+                                $('#soldOutBadge').removeClass('d-none');
+                                $('#spotsBadge')
+                                    .removeClass('alert-info')
+                                    .addClass('alert-danger')
+                                    .text('0 spots remaining');
+                            } else {
+                                $('#soldOutBadge').addClass('d-none');
+                                $('#spotsBadge')
+                                    .removeClass('alert-danger')
+                                    .addClass('alert-info')
+                                    .text(`${data.spots_left} spots remaining`);
+                            }
+                        } else {
+                            $('#capacitySummary').text(`${data.attendee_count} registered`);
+                        }
+
+                        if (data.joined) {
+                            $('#joinBtn')
+                                .removeClass('btn-success')
+                                .addClass('btn-outline-secondary')
+                                .prop('disabled', false);
+                            $('#joinIcon').removeClass('bi-check-circle-fill').addClass('bi-door-open-fill');
+                            $('#joinText').text('Leave Event');
+                            $('#joinFeedback').text('You are currently registered for this event.');
+                        } else {
+                            $('#joinBtn')
+                                .removeClass('btn-outline-secondary')
+                                .addClass('btn-success')
+                                .prop('disabled', data.sold_out === true);
+                            $('#joinIcon').removeClass('bi-door-open-fill').addClass('bi-check-circle-fill');
+                            $('#joinText').text('Join Event');
+                            $('#joinFeedback').text(
+                                data.sold_out
+                                    ? 'Registrations are currently full.'
+                                    : 'Reserve your spot instantly for this free event.'
+                            );
+                        }
+                    },
+                    error: function (xhr) {
+                        const data = xhr.responseJSON;
+
+                        if (data && data.sold_out) {
+                            if (capacity !== null) {
+                                $('#capacitySummary').text(`${data.attendee_count} registered · ${capacity} capacity`);
+                                $('#soldOutBadge').removeClass('d-none');
+                                $('#spotsBadge')
+                                    .removeClass('alert-info')
+                                    .addClass('alert-danger')
+                                    .text('0 spots remaining');
+                            }
+
+                            $('#joinBtn').prop('disabled', true);
+                            $('#joinFeedback').text(data.message || 'Registrations are full for this event.');
+                        } else {
+                            console.error('Failed to update registration.');
+                        }
+                    }
+                });
+            });
+
+            $('.ajax-bookmark-form').on('submit', function (e) {
+                e.preventDefault();
+
+                const btn = $('#bookmarkBtn');
+
+                $.ajax({
+                    url: this.action,
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    success: function (data) {
+                        if (data.action === 'bookmarked') {
+                            btn.removeClass('btn-outline-primary').addClass('btn-primary');
+                            $('#bookmarkText').text('Saved');
+                        } else {
+                            btn.removeClass('btn-primary').addClass('btn-outline-primary');
+                            $('#bookmarkText').text('Save');
+                        }
+                    },
+                    error: function () {
+                        console.error('Failed to update bookmark state.');
+                    }
+                });
+            });
+
             document.querySelectorAll('.ajax-form-comment').forEach(form => {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    
+
                     const btn = this.querySelector('.comment-like-btn');
                     const icon = btn.querySelector('i');
                     const countSpan = btn.querySelector('.like-count');
