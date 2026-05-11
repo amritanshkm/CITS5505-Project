@@ -20,8 +20,11 @@ def event_detail(event_id):
     is_creator = current_user.is_authenticated and (event.creator_id == current_user.id)
     
     form = CommentForm()
+
     if form.validate_on_submit():
         if not current_user.is_authenticated:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or 'application/json' in request.accept_mimetypes:
+                return {'status': 'error', 'message': 'Please login to comment.'}, 401
             flash('Please login to comment.', 'warning')
             return redirect(url_for('main.login'))
             
