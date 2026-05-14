@@ -3,15 +3,103 @@ from app.forms import LoginForm, RegistrationForm, ProfileUpdateForm, ChangePass
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Event, Comment, Announcement, Order
 from app import db
+from datetime import datetime, timedelta
 
 bp = Blueprint('main', __name__)
-
 
 @bp.route('/')
 @bp.route('/index')
 def index():
-    events = Event.query.all()
-    return render_template('index.html', title='Home', events=events)
+    query = Event.query
+
+    # Get query params
+    quick_filter = request.args.get('quick_filter')
+    from_date = request.args.get('from')
+    
+
+    today = datetime.now().date()
+
+    start = None
+    end = None
+
+    # Quick filters
+    if quick_filter == 'today':
+        start = today
+        end = today
+
+    elif quick_filter == 'tomorrow':
+        start = today + timedelta(days=1)
+        end = start
+
+    elif quick_filter == 'this_weekend':
+        days_until_sat = (5 - today.weekday()) % 7
+        saturday = today + timedelta(days=days_until_sat)
+        sunday = saturday + timedelta(days=1)
+
+        start = saturday
+        end = sunday
+
+    elif quick_filter == 'this_week':
+        start = today
+        end = today + timedelta(days=6)
+
+    elif quick_filter == 'this_month':
+        start = today.replace(day=1)
+
+        if today.month == 12:
+            next_month = today.replace(year=today.year + 1, month=1, day=1)
+        else:
+            next_month = today.replace(month=today.month + 1, day=1)
+
+        end = next_month - timedelta(days=1)
+
+    # Custom date 
+    elif from_date:
+        try:
+            start = datetime.strptime(from_date, '%Y-%m-%d').date()
+            end =start
+        except ValueError:
+            start = None
+            end = None
+
+    # Apply filter
+    if start and end:
+        filtered_events = []
+
+        for event in query.all():
+            try:
+                try:
+                    event_date = datetime.strptime(event.date, '%Y-%m-%d').date()
+                except ValueError:
+                    event_date = datetime.strptime(event.date, '%d/%m/%Y').date()
+
+                if start <= event_date <= end:
+                    filtered_events.append(event)
+
+            except Exception:
+                continue
+
+        #events = sorted(filtered_events, key=lambda e: e.date)
+        events = sorted(
+        filtered_events,
+        key=lambda e: datetime.strptime(
+        e.date,
+        '%Y-%m-%d' if '-' in e.date else '%d/%m/%Y'
+    )
+)
+        
+
+    else:
+        events = query.all()
+
+    return render_template(
+        'index.html',
+        title='Home',
+        events=events,
+        quick_filter=quick_filter,
+        from_date=from_date,
+        
+    )
 
 @bp.route('/event/<int:event_id>', methods=['GET', 'POST'])
 def event_detail(event_id):
