@@ -297,6 +297,19 @@
                 </div>
             </div>
 
+            {% if event.price_type == 'free' %}
+            <div class="alert alert-success rounded-4 border-0 shadow-sm">
+                <div class="d-flex align-items-start gap-3">
+                    <i class="bi bi-gift-fill fs-3"></i>
+                    <div>
+                        <h5 class="fw-bold mb-1">Free Event</h5>
+                        <p class="mb-0">
+                            No payment is required for this event. Use the Join Event button to reserve your place.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
             <div class="border rounded-4 p-4 bg-white shadow-sm">
                 <div class="rounded-4 p-3 mb-3 text-white shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
                     <p class="small text-uppercase fw-bold mb-1 opacity-75">PayID / Bank Transfer</p>
@@ -326,7 +339,7 @@
                     <div class="col-6">
                         <div class="bg-light rounded-4 p-3 h-100">
                             <div class="text-muted text-uppercase small fw-semibold">Amount</div>
-                            <div class="fw-bold">{% if event.price_type == 'free' %}No payment required{% else %}{{ event.price_label }}{% endif %}</div>
+                            <div class="fw-bold">{{ event.price_label }}</div>
                         </div>
                     </div>
                     <div class="col-12">
@@ -337,18 +350,13 @@
                     </div>
                 </div>
 
-                {% if event.price_type == 'free' %}
-                    <div class="alert alert-success rounded-4 mt-3 mb-0">
-                        This event is free, so no transfer is needed. The payment block is displayed for consistency across event pages.
-                    </div>
-                {% else %}
-                    <ol class="small text-muted mt-3 mb-0 ps-3">
-                        <li>Transfer the exact event amount using the PayID above.</li>
-                        <li>Use the displayed reference so the organiser can match your payment.</li>
-                        <li>After payment, keep your confirmation for check-in if requested.</li>
-                    </ol>
-                {% endif %}
+                <ol class="small text-muted mt-3 mb-0 ps-3">
+                    <li>Transfer the exact event amount using the PayID above.</li>
+                    <li>Use the displayed reference so the organiser can match your payment.</li>
+                    <li>After payment, keep your confirmation for check-in if requested.</li>
+                </ol>
             </div>
+            {% endif %}
 
             <div class="border rounded-4 overflow-hidden shadow-sm bg-white">
                 <div class="bg-light p-3 border-bottom">
@@ -544,7 +552,6 @@
                 });
             });
 
-            // Comment Form AJAX Submission
             const postCommentForm = document.getElementById('postCommentForm');
             if (postCommentForm) {
                 postCommentForm.addEventListener('submit', function(e) {
@@ -552,7 +559,7 @@
                     const formData = new FormData(this);
                     const submitBtn = this.querySelector('button[type="submit"]');
                     const originalText = submitBtn.innerHTML;
-                    
+
                     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
                     submitBtn.disabled = true;
 
@@ -574,8 +581,7 @@
                     .then(data => {
                         if (data && data.status === 'success') {
                             const commentsList = document.getElementById('commentsList');
-                            
-                            // Build new comment HTML
+
                             let avatarHtml = '';
                             if (data.comment.author_avatar_url) {
                                 avatarHtml = `<img src="${data.comment.author_avatar_url}" class="rounded-circle shadow-sm" style="width: 50px; height: 50px; object-fit: cover; border: 2px solid white;">`;
@@ -583,11 +589,10 @@
                                 avatarHtml = `<div class="avatar-circle">${data.comment.author_initial}</div>`;
                             }
 
-                            // Create delete button HTML if the author is current user or event creator
                             let deleteBtnHtml = '';
                             const currentUserId = "{{ current_user.id if current_user.is_authenticated else '' }}";
                             const isCreator = "{{ 'true' if is_creator else 'false' }}" === "true";
-                            
+
                             if (isCreator || data.comment.author_id.toString() === currentUserId) {
                                 deleteBtnHtml = `
                                     <form method="POST" action="/event/{{ event.id }}/comment/${data.comment.id}/delete" class="m-0">
@@ -607,7 +612,7 @@
                                         </div>
                                         <div class="chat-bubble shadow-sm">
                                             <p class="mb-0 text-secondary" style="white-space: pre-wrap;">${data.comment.content}</p>
-                                            
+
                                             <div class="action-btn-group mt-2 pt-2 border-top">
                                                 <form method="POST" action="/event/{{ event.id }}/comment/${data.comment.id}/like" class="m-0 ajax-form-comment">
                                                     <button type="submit" class="btn btn-sm btn-outline-danger bg-white rounded-pill fw-semibold shadow-sm px-3 comment-like-btn">
@@ -623,22 +628,15 @@
                                     </div>
                                 </div>
                             `;
-                            
-                            // Remove "No comments yet" if it exists
+
                             const emptyState = commentsList.querySelector('.text-center.py-5');
                             if (emptyState) {
                                 emptyState.remove();
                             }
 
-                            // Insert at top
                             commentsList.insertAdjacentHTML('afterbegin', newCommentHtml);
-                            
-                            // Reset form
                             postCommentForm.reset();
-                            
-                            // Re-bind the new like button (quick hack: re-bind all, relying on removing old listeners or just delegating)
-                            // Better approach: Since we don't have delegation, we just re-run the binding for new elements.
-                            // But for simplicity, we'll reload the page if needed, OR just attach event listener directly.
+
                             const newLikeForm = commentsList.firstElementChild.querySelector('.ajax-form-comment');
                             if (newLikeForm) {
                                 newLikeForm.addEventListener('submit', function(e) {
