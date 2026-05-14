@@ -59,39 +59,29 @@ def event_detail(event_id):
                            current_user_id=current_user.id if current_user.is_authenticated else None,
                            user_liked=user_liked, user_bookmarked=user_bookmarked, spots_left=spots_left)
 
-@bp.route('/event/<int:event_id>/comment/<int:comment_id>/like', methods=['POST'])
-@login_required
-def like_comment(event_id, comment_id):
-    comment = Comment.query.get_or_404(comment_id)
-    if current_user in comment.liked_by:
-        comment.liked_by.remove(current_user)
-        comment.likes -= 1
-        action = 'unliked'
-    else:
-        comment.liked_by.append(current_user)
-        comment.likes += 1
-        action = 'liked'
-    db.session.commit()
-    
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or 'application/json' in request.accept_mimetypes:
-        return {'status': 'success', 'action': action, 'likes': comment.likes}
-    return redirect(url_for('main.event_detail', event_id=event_id))
-
 @bp.route('/event/<int:event_id>/like', methods=['POST'])
 @login_required
 def like_event(event_id):
     event = Event.query.get_or_404(event_id)
     action = 'liked'
+
     if event in current_user.liked_events:
         current_user.liked_events.remove(event)
         action = 'unliked'
     else:
         current_user.liked_events.append(event)
+
     db.session.commit()
-    
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or 'application/json' in request.accept_mimetypes:
-        return {'status': 'success', 'action': action}
+        return {
+            'status': 'success',
+            'action': action,
+            'like_count': event.liked_by.count()
+        }
+
     return redirect(url_for('main.event_detail', event_id=event_id))
+
 
 @bp.route('/event/<int:event_id>/bookmark', methods=['POST'])
 @login_required
