@@ -449,10 +449,16 @@ def my_events():
 
         event = order.event
 
-        if event.date >= today:
+        # Convert string date from database into proper date object
+        event_date = datetime.strptime(event.date, '%Y-%m-%d').date()
+
+        # Separate upcoming and past events safely
+        if event_date >= today:
             upcoming_events.append(event)
         else:
             past_events.append(event)
+    
+    
 
     return render_template(
         'my_events.html',
