@@ -414,3 +414,25 @@ def user_avatar(user_id):
         return current_app.response_class(user.avatar, mimetype='image/jpeg')
     # If no avatar, just redirect or return 404 (we handle default in template)
     return current_app.response_class(b'', mimetype='image/jpeg')
+
+@bp.route('/map')
+def full_map():
+    events = Event.query.all()
+
+    event_data = []
+
+    for event in events:
+        event_data.append({
+            'id': event.id,
+            'title': event.title,
+            'date': str(event.date),
+            'latitude': event.lat,
+            'longitude': event.lng,
+            'location': event.location
+        })
+
+    return render_template(
+        'map.html',
+        title='Explore Events Map',
+        events=event_data
+    )
