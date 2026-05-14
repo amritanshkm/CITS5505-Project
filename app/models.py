@@ -26,6 +26,8 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     join_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     avatar = db.Column(db.LargeBinary, nullable=True)
+    # Stores user-selected interests as comma-separated values
+    interests = db.Column(db.Text, nullable=True)
 
     # Relationships (One-to-Many)
     created_events = db.relationship('Event', backref='creator', lazy='dynamic')
