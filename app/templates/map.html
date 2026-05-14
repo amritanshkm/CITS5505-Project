@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+/>
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+/>
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+/>
+{% endblock %}
+
+{% block content %}
+<div class="full-map-page">
+
+    <div class="map-page-header">
+        <div>
+            <p class="map-eyebrow">Explore Events</p>
+            <h1>Discover Events on the Map</h1>
+            <p>Find events happening around Perth.</p>
+        </div>
+
+        <a href="{{ url_for('main.index') }}" class="back-to-events">
+            ← Back to Events
+        </a>
+    </div>
+
+    <div id="full-map"></div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script>
+    const events = {{ events|tojson }};
+
+    const map = L.map('full-map').setView([-31.9505, 115.8605], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const markers = L.markerClusterGroup();
+
+    events.forEach(event => {
+        const marker = L.marker([event.latitude, event.longitude]);
+
+        marker.bindPopup(`
+            <div class="map-popup">
+                <h3>${event.title}</h3>
+                <p>${event.date}</p>
+                <p>${event.location}</p>
+
+                <a href="/event/${event.id}" class="popup-btn">
+                    View Event
+                </a>
+            </div>
+        `);
+
+        markers.addLayer(marker);
+    });
+
+    map.addLayer(markers);
+</script>
+{% endblock %}
