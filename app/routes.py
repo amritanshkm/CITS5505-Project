@@ -20,8 +20,11 @@ def event_detail(event_id):
     is_creator = current_user.is_authenticated and (event.creator_id == current_user.id)
     
     form = CommentForm()
+
     if form.validate_on_submit():
         if not current_user.is_authenticated:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or 'application/json' in request.accept_mimetypes:
+                return {'status': 'error', 'message': 'Please login to comment.'}, 401
             flash('Please login to comment.', 'warning')
             return redirect(url_for('main.login'))
             
@@ -32,6 +35,23 @@ def event_detail(event_id):
         )
         db.session.add(new_comment)
         db.session.commit()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or 'application/json' in request.accept_mimetypes:
+            avatar_url = url_for('main.user_avatar', user_id=current_user.id) if current_user.avatar else None
+            return {
+                'status': 'success',
+                'comment': {
+                    'id': new_comment.id,
+                    'content': new_comment.content,
+                    'author_id': current_user.id,
+                    'author_nickname': current_user.nickname,
+                    'author_avatar_url': avatar_url,
+                    'author_initial': current_user.nickname[0].upper(),
+                    'timestamp': new_comment.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                    'likes': 0
+                }
+            }
+            
         flash('Comment posted successfully!', 'success')
         return redirect(url_for('main.event_detail', event_id=event_id))
     
