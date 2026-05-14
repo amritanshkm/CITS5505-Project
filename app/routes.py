@@ -386,10 +386,10 @@ def profile():
     profile_form = ProfileUpdateForm(prefix='profile')
     password_form = ChangePasswordForm(prefix='password')
     
-    if profile_form.submit_profile.data and profile_form.validate_on_submit():
-        current_user.nickname = profile_form.nickname.data
-        current_user.email = profile_form.email.data
+    # Handle interests form submission separately
 
+    if request.method == 'POST' and 'submit_interests' in request.form:
+        
         # Get selected interests from form
         selected_interests = request.form.getlist('interests')
 
