@@ -236,11 +236,51 @@ def delete_event(event_id):
 @login_required
 def join_event(event_id):
     event = Event.query.get_or_404(event_id)
-    
+
+    wants_json = (
+        request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        or request.is_json
+        or 'application/json' in request.accept_mimetypes
+    )
+
+    existing_orders = current_user.orders.filter_by(event_id=event.id).all()
+
+    if existing_orders:
+        for order in existing_orders:
+            db.session.delete(order)
+        db.session.commit()
+
+        attendee_count = event.orders.count()
+        spots_left = None
+        if event.capacity is not None:
+            spots_left = max(0, event.capacity - attendee_count)
+
+        if wants_json:
+            return {
+                'status': 'success',
+                'action': 'left',
+                'joined': False,
+                'attendee_count': attendee_count,
+                'spots_left': spots_left,
+                'sold_out': spots_left == 0 if spots_left is not None else False
+            }
+
+        flash('You have left this event.', 'info')
+        return redirect(url_for('main.event_detail', event_id=event.id))
+
     if event.capacity is not None and event.orders.count() >= event.capacity:
+        if wants_json:
+            return {
+                'status': 'error',
+                'message': 'Registrations are full for this event.',
+                'sold_out': True,
+                'attendee_count': event.orders.count(),
+                'spots_left': 0
+            }, 409
+
         flash('Registrations are full for this event.', 'danger')
         return redirect(url_for('main.event_detail', event_id=event.id))
-    
+
     order = Order(
         user_id=current_user.id,
         event_id=event.id,
@@ -249,7 +289,22 @@ def join_event(event_id):
     )
     db.session.add(order)
     db.session.commit()
-    
+
+    attendee_count = event.orders.count()
+    spots_left = None
+    if event.capacity is not None:
+        spots_left = max(0, event.capacity - attendee_count)
+
+    if wants_json:
+        return {
+            'status': 'success',
+            'action': 'joined',
+            'joined': True,
+            'attendee_count': attendee_count,
+            'spots_left': spots_left,
+            'sold_out': spots_left == 0 if spots_left is not None else False
+        }
+
     flash('Successfully joined the free event!', 'success')
     return redirect(url_for('main.order_detail', order_id=order.order_id))
 
