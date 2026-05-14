@@ -362,39 +362,96 @@
 
                                 </div>
 
-                                <div class="d-flex flex-wrap gap-3 mt-4">
+                                <!-- Interests Selection Form -->
+                                <form method="POST" action="" class="w-100 mt-4">
 
-                                    <button type="button"
-                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
-                                        🎵 Music
-                                    </button>
+                                    {{ profile_form.hidden_tag() }}
 
-                                    <button type="button"
-                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
-                                        🍔 Food & Drink
-                                    </button>
+                                    <div class="d-flex flex-wrap gap-3">
 
-                                    <button type="button"
-                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
-                                        🧘 Health & Wellness
-                                    </button>
+                                        <label class="interest-option">
+                                            <input type="checkbox"
+                                                   name="interests"
+                                                   value="Music"
+                                                   class="d-none interest-checkbox"
+                                                   {% if 'Music' in saved_interests %}checked{% endif %}>
 
-                                    <button type="button"
-                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
-                                        🏡 Home & Lifestyle
-                                    </button>
+                                            <span class="btn rounded-pill px-4 py-3 fw-semibold interest-btn {% if 'Music' in saved_interests %}btn-primary active{% else %}btn-outline-primary{% endif %}">
+                                                🎵 Music
+                                            </span>
+                                        </label>
 
-                                    <button type="button"
-                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
-                                        ⚽ Sports
-                                    </button>
+                                        <label class="interest-option">
+                                            <input type="checkbox"
+                                                   name="interests"
+                                                   value="Food & Drink"
+                                                   class="d-none interest-checkbox"
+                                                   {% if 'Food & Drink' in saved_interests %}checked{% endif %}>
 
-                                    <button type="button"
-                                            class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold interest-btn">
-                                        💻 Technology
-                                    </button>
+                                            <span class="btn rounded-pill px-4 py-3 fw-semibold interest-btn {% if 'Food & Drink' in saved_interests %}btn-primary active{% else %}btn-outline-primary{% endif %}">
+                                                🍔 Food & Drink
+                                            </span>
+                                        </label>
 
-                                </div>
+                                        <label class="interest-option">
+                                            <input type="checkbox"
+                                                   name="interests"
+                                                   value="Health & Wellness"
+                                                   class="d-none interest-checkbox"
+                                                   {% if 'Health & Wellness' in saved_interests %}checked{% endif %}>
+
+                                            <span class="btn rounded-pill px-4 py-3 fw-semibold interest-btn {% if 'Health & Wellness' in saved_interests %}btn-primary active{% else %}btn-outline-primary{% endif %}">
+                                                🧘 Health & Wellness
+                                            </span>
+                                        </label>
+
+                                        <label class="interest-option">
+                                            <input type="checkbox"
+                                                   name="interests"
+                                                   value="Home & Lifestyle"
+                                                   class="d-none interest-checkbox"
+                                                   {% if 'Home & Lifestyle' in saved_interests %}checked{% endif %}>
+
+                                            <span class="btn rounded-pill px-4 py-3 fw-semibold interest-btn {% if 'Home & Lifestyle' in saved_interests %}btn-primary active{% else %}btn-outline-primary{% endif %}">
+                                                🏡 Home & Lifestyle
+                                            </span>
+                                        </label>
+
+                                        <label class="interest-option">
+                                            <input type="checkbox"
+                                                   name="interests"
+                                                   value="Sports"
+                                                   class="d-none interest-checkbox"
+                                                   {% if 'Sports' in saved_interests %}checked{% endif %}>
+
+                                            <span class="btn rounded-pill px-4 py-3 fw-semibold interest-btn {% if 'Sports' in saved_interests %}btn-primary active{% else %}btn-outline-primary{% endif %}">
+                                                ⚽ Sports
+                                            </span>
+                                        </label>
+
+                                        <label class="interest-option">
+                                            <input type="checkbox"
+                                                   name="interests"
+                                                   value="Technology"
+                                                   class="d-none interest-checkbox"
+                                                   {% if 'Technology' in saved_interests %}checked{% endif %}>
+
+                                            <span class="btn rounded-pill px-4 py-3 fw-semibold interest-btn {% if 'Technology' in saved_interests %}btn-primary active{% else %}btn-outline-primary{% endif %}">
+                                                💻 Technology
+                                            </span>
+                                        </label>
+
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <button type="submit"
+                                                name="submit_profile"
+                                                class="btn btn-primary rounded-pill px-5 py-2 fw-semibold shadow-sm">
+                                            Save Interests
+                                        </button>
+                                    </div>
+
+                                </form>
 
                                 <div class="alert alert-light border rounded-4 mt-5 mb-0">
                                     <i class="bi bi-info-circle me-2 text-primary"></i>
@@ -468,18 +525,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const interestButtons = document.querySelectorAll('.interest-btn');
+    const interestOptions = document.querySelectorAll('.interest-option');
 
-    interestButtons.forEach(button => {
-        button.addEventListener('click', () => {
+    interestOptions.forEach(option => {
+        const checkbox = option.querySelector('.interest-checkbox');
+        const button = option.querySelector('.interest-btn');
 
-            button.classList.toggle('active');
+        option.addEventListener('click', () => {
+            checkbox.checked = !checkbox.checked;
 
-            if (button.classList.contains('active')) {
+            if (checkbox.checked) {
+                button.classList.add('active', 'btn-primary');
                 button.classList.remove('btn-outline-primary');
-                button.classList.add('btn-primary');
             } else {
-                button.classList.remove('btn-primary');
+                button.classList.remove('active', 'btn-primary');
                 button.classList.add('btn-outline-primary');
             }
         });
