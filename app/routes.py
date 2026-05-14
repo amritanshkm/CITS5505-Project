@@ -238,9 +238,8 @@ def join_event(event_id):
     event = Event.query.get_or_404(event_id)
 
     wants_json = (
-        request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        or request.is_json
-        or 'application/json' in request.accept_mimetypes
+    request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    or request.is_json
     )
 
     existing_orders = current_user.orders.filter_by(event_id=event.id).all()
