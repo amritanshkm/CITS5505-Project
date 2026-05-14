@@ -438,8 +438,7 @@ def user_avatar(user_id):
 @bp.route('/saved-events')
 @login_required
 def saved_events():
-    bookmarked_events = current_user.bookmarked_events
-
+    bookmarked_events = current_user.bookmarked_events.all()
     return render_template(
         'saved_events.html',
         events=bookmarked_events
