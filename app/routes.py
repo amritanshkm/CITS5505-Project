@@ -389,6 +389,12 @@ def profile():
     if profile_form.submit_profile.data and profile_form.validate_on_submit():
         current_user.nickname = profile_form.nickname.data
         current_user.email = profile_form.email.data
+
+        # Get selected interests from form
+        selected_interests = request.form.getlist('interests')
+
+        # Save selected interests as comma-separated string
+        current_user.interests = ','.join(selected_interests)
         
         # Handle Avatar Upload
         if profile_form.avatar.data:
@@ -414,6 +420,12 @@ def profile():
     if request.method == 'GET':
         profile_form.nickname.data = current_user.nickname
         profile_form.email.data = current_user.email
+
+    # Load saved interests for UI rendering
+    saved_interests = []
+
+    if current_user.interests:
+        saved_interests = current_user.interests.split(',')
         
     return render_template('profile.html', 
                            title='My Profile', 
@@ -423,7 +435,8 @@ def profile():
                            collections=current_user.bookmarked_events.all() if current_user.is_authenticated else [],
                            likes=current_user.liked_events.all() if current_user.is_authenticated else [],
                            my_events=current_user.created_events.all(),
-                           orders=current_user.orders.order_by(Order.timestamp.desc()).all())
+                           orders=current_user.orders.order_by(Order.timestamp.desc()).all(),
+                           saved_interests=saved_interests)
 
 @bp.route('/user/<int:user_id>/avatar')
 def user_avatar(user_id):
