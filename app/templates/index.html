@@ -30,6 +30,65 @@
             <option value="free">Free</option>
             <option value="paid">Paid</option>
         </select>
+
+        <div class="date-filter-container">
+            <div class="quick-filters">
+                <a href="{{ url_for('main.index', quick_filter='today') }}"
+                   class="filter-btn {% if quick_filter == 'today' %}active{% endif %}">
+                    Today
+                </a>
+
+                <a href="{{ url_for('main.index', quick_filter='tomorrow') }}"
+                   class="filter-btn {% if quick_filter == 'tomorrow' %}active{% endif %}">
+                    Tomorrow
+                </a>
+
+                <a href="{{ url_for('main.index', quick_filter='this_weekend') }}"
+                   class="filter-btn {% if quick_filter == 'this_weekend' %}active{% endif %}">
+                    This Weekend
+                </a>
+
+                <a href="{{ url_for('main.index', quick_filter='this_week') }}"
+                   class="filter-btn {% if quick_filter == 'this_week' %}active{% endif %}">
+                    This Week
+                </a>
+
+                <a href="{{ url_for('main.index', quick_filter='this_month') }}"
+                   class="filter-btn {% if quick_filter == 'this_month' %}active{% endif %}">
+                    This Month
+                </a>
+            </div>
+
+            <form method="GET" action="{{ url_for('main.index') }}" class="custom-date-form">
+                <input
+                    type="date"
+                    name="from"
+                    value="{{ from_date if from_date else '' }}"
+                >
+                <button type="submit" class="filter-btn">
+                    Apply
+                </button>
+                <a href="{{ url_for('main.index') }}" class="clear-btn">
+                    Clear
+                </a>
+            </form>
+
+            <div class="active-filters">
+                {% if quick_filter %}
+                    <div class="filter-chip">
+                        {{ quick_filter.replace('_', ' ').title() }}
+                        <a href="{{ url_for('main.index') }}">✕</a>
+                    </div>
+                {% endif %}
+
+                {% if from_date %}
+                    <div class="filter-chip">
+                        {{ from_date }}
+                        <a href="{{ url_for('main.index') }}">✕</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </section>
 
     <section class="content-layout">
@@ -62,6 +121,12 @@
                     </div>
                 </article>
                 {% endfor %}
+                {% if not events %}
+                <div class="empty-state">
+                    <h3>No events found</h3>
+                    <p>Try another date or filter option.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
 
