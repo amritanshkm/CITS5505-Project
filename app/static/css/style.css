@@ -910,6 +910,13 @@ body {
     transform: translateY(-1px);
 }
 
+/* Suppress Bootstrap's default btn-outline-light white fill on hover in navbar */
+.navbar .btn-outline-light.nav-btn:hover,
+.navbar .nav-link.btn-outline-light.nav-btn:hover {
+    background-color: transparent !important;
+    color: inherit !important;
+}
+
 /* ==========================================================================
    🌙 DARK MODE FIXES
    ========================================================================== */
