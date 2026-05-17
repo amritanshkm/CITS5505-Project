@@ -932,4 +932,20 @@ body {
 [data-bs-theme="dark"] .profile-avatar-card .text-muted,
 [data-bs-theme="dark"] .card.shadow-sm.rounded-4.text-center .text-muted {
     color: var(--text-secondary) !important;
+}
+
+/* Global overrides for Bootstrap background and text classes in dark mode */
+[data-bs-theme="dark"] .bg-white,
+[data-bs-theme="dark"] .bg-light,
+[data-bs-theme="dark"] .text-bg-light {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-bs-theme="dark"] .text-dark {
+    color: var(--text-primary) !important;
+}
+
+[data-bs-theme="dark"] .text-secondary,
+[data-bs-theme="dark"] .text-muted {
+    color: var(--text-secondary) !important;
 }
