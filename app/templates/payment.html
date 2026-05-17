@@ -11,7 +11,7 @@
             <div class="card-body p-4 p-md-5">
                 <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
                     <span class="text-muted fw-semibold">Total Amount Due</span>
-                    <span class="fs-3 fw-bold text-dark">{{ event.price_label }}</span>
+                    <span class="fs-3 fw-bold text-body">{{ event.price_label }}</span>
                 </div>
                 
                 <form id="paymentForm" method="POST" action="{{ url_for('main.payment', event_id=event.id) }}" novalidate>

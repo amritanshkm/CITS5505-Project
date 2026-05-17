@@ -48,7 +48,7 @@
                     </div>
                     {% endif %}
                 </div>
-                <h5 class="card-title fw-bold text-dark">{{ user.nickname }}</h5>
+                <h5 class="card-title fw-bold text-body">{{ user.nickname }}</h5>
                 <p class="text-muted small mb-0">{{ user.email }}</p>
             </div>
         </div>
@@ -90,13 +90,13 @@
                     
                     <!-- Personal Info Tab -->
                     <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">
-                        <h4 class="mb-4 text-dark fw-bold border-bottom pb-3">Personal Information</h4>
+                        <h4 class="mb-4 text-body fw-bold border-bottom pb-3">Personal Information</h4>
                         <form method="POST" action="" enctype="multipart/form-data" id="profileForm">
                             {{ profile_form.hidden_tag() }}
                             <div class="row mb-4">
                                 <div class="col-md-6">
                                     {{ profile_form.nickname.label(class="form-label fw-semibold text-secondary") }}
-                                    {{ profile_form.nickname(class="form-control form-control-lg bg-light border-0" + (" is-invalid" if profile_form.nickname.errors else "")) }}
+                                    {{ profile_form.nickname(class="form-control form-control-lg bg-body border-1" + (" is-invalid" if profile_form.nickname.errors else "")) }}
                                     {% for error in profile_form.nickname.errors %}
                                         <div class="invalid-feedback">{{ error }}</div>
                                     {% endfor %}
@@ -105,7 +105,7 @@
                             <div class="row mb-5">
                                 <div class="col-md-6">
                                     {{ profile_form.email.label(class="form-label fw-semibold text-secondary") }}
-                                    {{ profile_form.email(class="form-control form-control-lg bg-light border-0" + (" is-invalid" if profile_form.email.errors else "")) }}
+                                    {{ profile_form.email(class="form-control form-control-lg bg-body border-1" + (" is-invalid" if profile_form.email.errors else "")) }}
                                     {% for error in profile_form.email.errors %}
                                         <div class="invalid-feedback">{{ error }}</div>
                                     {% endfor %}
@@ -114,7 +114,7 @@
                             <div class="row mb-5">
                                 <div class="col-md-6">
                                     {{ profile_form.avatar.label(class="form-label fw-semibold text-secondary") }}
-                                    {{ profile_form.avatar(class="form-control form-control-lg bg-light border-0", id="avatarInput", accept=".jpg,.jpeg,.png") }}
+                                    {{ profile_form.avatar(class="form-control form-control-lg bg-body border-1", id="avatarInput", accept=".jpg,.jpeg,.png") }}
                                     <div class="form-text">JPG or PNG only. Max size 2MB.</div>
                                     {% for error in profile_form.avatar.errors %}
                                         <div class="text-danger small mt-1">{{ error }}</div>
@@ -130,7 +130,7 @@
 
                     <!-- My Bookmarks Tab -->
                     <div class="tab-pane fade" id="v-pills-collections" role="tabpanel" aria-labelledby="v-pills-collections-tab">
-                        <h4 class="mb-4 text-dark fw-bold border-bottom pb-3">My Bookmarks</h4>
+                        <h4 class="mb-4 text-body fw-bold border-bottom pb-3">My Bookmarks</h4>
                         {% if collections %}
                             <div class="row row-cols-1 row-cols-md-2 g-4">
                             {% for coll in collections %}
@@ -138,7 +138,7 @@
                                     <div class="card h-100 border-0 bg-light rounded-4 shadow-sm hover-shadow transition border-start border-4 border-theme">
                                         <div class="card-body p-4">
                                             <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <h5 class="card-title text-dark fw-bold fs-5 mb-0">{{ coll.title }}</h5>
+                                                <h5 class="card-title text-body fw-bold fs-5 mb-0">{{ coll.title }}</h5>
                                                 <i class="bi bi-bookmark-star-fill text-theme fs-5"></i>
                                             </div>
                                             <p class="card-text text-secondary small mb-1">
@@ -162,7 +162,7 @@
 
                     <!-- My Orders Tab -->
                     <div class="tab-pane fade" id="v-pills-orders" role="tabpanel" aria-labelledby="v-pills-orders-tab">
-                        <h4 class="mb-4 text-dark fw-bold border-bottom pb-3">My Orders & Tickets</h4>
+                        <h4 class="mb-4 text-body fw-bold border-bottom pb-3">My Orders & Tickets</h4>
                         {% if orders %}
                             <div class="row row-cols-1 row-cols-md-2 g-4">
                             {% for order in orders %}
@@ -170,7 +170,7 @@
                                     <div class="card h-100 border-0 bg-light rounded-4 shadow-sm hover-shadow transition border-start border-4 border-primary">
                                         <div class="card-body p-4 d-flex flex-column">
                                             <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <h5 class="card-title text-dark fw-bold fs-5 mb-0">{{ order.event.title }}</h5>
+                                                <h5 class="card-title text-body fw-bold fs-5 mb-0">{{ order.event.title }}</h5>
                                                 <span class="badge bg-primary rounded-pill">{{ order.status }}</span>
                                             </div>
                                             <p class="card-text text-secondary small mb-1">
@@ -200,7 +200,7 @@
 
                     <!-- My Likes Tab -->
                     <div class="tab-pane fade" id="v-pills-likes" role="tabpanel" aria-labelledby="v-pills-likes-tab">
-                        <h4 class="mb-4 text-dark fw-bold border-bottom pb-3">My Liked Events</h4>
+                        <h4 class="mb-4 text-body fw-bold border-bottom pb-3">My Liked Events</h4>
                         {% if likes %}
                             <div class="row row-cols-1 row-cols-md-2 g-4">
                             {% for like in likes %}
@@ -208,7 +208,7 @@
                                     <div class="card h-100 border-0 bg-light rounded-4 shadow-sm hover-shadow transition border-start border-4 border-danger">
                                         <div class="card-body p-4">
                                             <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <h5 class="card-title text-dark fw-bold fs-5 mb-0">{{ like.title }}</h5>
+                                                <h5 class="card-title text-body fw-bold fs-5 mb-0">{{ like.title }}</h5>
                                                 <i class="bi bi-heart-fill text-danger fs-5"></i>
                                             </div>
                                             <p class="card-text text-secondary small mb-1">
@@ -233,7 +233,7 @@
                     <!-- My Created Events Tab -->
                     <div class="tab-pane fade" id="v-pills-my-events" role="tabpanel" aria-labelledby="v-pills-my-events-tab">
                         <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                            <h4 class="text-dark fw-bold mb-0">My Created Events</h4>
+                            <h4 class="text-body fw-bold mb-0">My Created Events</h4>
                             <a href="{{ url_for('main.create_event') }}" class="btn btn-primary rounded-pill shadow-sm"><i class="bi bi-plus-circle me-1"></i> Create New Event</a>
                         </div>
                         {% if my_events %}
@@ -243,7 +243,7 @@
                                     <div class="card h-100 border-0 bg-light rounded-4 shadow-sm hover-shadow transition border-start border-4 border-success">
                                         <div class="card-body p-4">
                                             <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <h5 class="card-title text-dark fw-bold fs-5 mb-0">{{ my_ev.title }}</h5>
+                                                <h5 class="card-title text-body fw-bold fs-5 mb-0">{{ my_ev.title }}</h5>
                                                 <i class="bi bi-calendar-check-fill text-success fs-5"></i>
                                             </div>
                                             <p class="card-text text-secondary small mb-1">
@@ -275,13 +275,13 @@
 
                     <!-- Security Tab -->
                     <div class="tab-pane fade" id="v-pills-security" role="tabpanel" aria-labelledby="v-pills-security-tab">
-                        <h4 class="mb-4 text-dark fw-bold border-bottom pb-3">Change Password</h4>
+                        <h4 class="mb-4 text-body fw-bold border-bottom pb-3">Change Password</h4>
                         <form method="POST" action="">
                             {{ password_form.hidden_tag() }}
                             <div class="row mb-3">
                                 <div class="col-md-8">
                                     {{ password_form.old_password.label(class="form-label fw-semibold text-secondary") }}
-                                    {{ password_form.old_password(class="form-control form-control-lg bg-light border-0" + (" is-invalid" if password_form.old_password.errors else "")) }}
+                                    {{ password_form.old_password(class="form-control form-control-lg bg-body border-1" + (" is-invalid" if password_form.old_password.errors else "")) }}
                                     {% for error in password_form.old_password.errors %}
                                         <div class="invalid-feedback">{{ error }}</div>
                                     {% endfor %}
@@ -290,7 +290,7 @@
                             <div class="row mb-3">
                                 <div class="col-md-8">
                                     {{ password_form.new_password.label(class="form-label fw-semibold text-secondary") }}
-                                    {{ password_form.new_password(class="form-control form-control-lg bg-light border-0" + (" is-invalid" if password_form.new_password.errors else "")) }}
+                                    {{ password_form.new_password(class="form-control form-control-lg bg-body border-1" + (" is-invalid" if password_form.new_password.errors else "")) }}
                                     {% for error in password_form.new_password.errors %}
                                         <div class="invalid-feedback">{{ error }}</div>
                                     {% endfor %}
@@ -299,7 +299,7 @@
                             <div class="row mb-5">
                                 <div class="col-md-8">
                                     {{ password_form.confirm_new_password.label(class="form-label fw-semibold text-secondary") }}
-                                    {{ password_form.confirm_new_password(class="form-control form-control-lg bg-light border-0" + (" is-invalid" if password_form.confirm_new_password.errors else "")) }}
+                                    {{ password_form.confirm_new_password(class="form-control form-control-lg bg-body border-1" + (" is-invalid" if password_form.confirm_new_password.errors else "")) }}
                                     {% for error in password_form.confirm_new_password.errors %}
                                         <div class="invalid-feedback">{{ error }}</div>
                                     {% endfor %}
@@ -328,7 +328,7 @@
                 </div>
             </div>
             <div class="modal-body text-center pt-4 pb-2 px-5">
-                <h4 class="fw-bold text-dark mb-3" id="logoutModalLabel">Ready to leave?</h4>
+                <h4 class="fw-bold text-body mb-3" id="logoutModalLabel">Ready to leave?</h4>
                 <p class="text-secondary fs-6">Are you sure you want to log out of your account? You'll need to sign back in to access your tickets and saved events.</p>
             </div>
             <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex gap-2 justify-content-center">

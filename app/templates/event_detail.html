@@ -211,11 +211,11 @@
 
         <aside class="map-panel shadow-sm border-0 d-flex flex-column gap-4" style="margin-top: 0;">
 
-            <div class="border rounded-4 p-4 bg-white shadow-sm">
+            <div class="border rounded-4 p-4 bg-body shadow-sm">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
                         <p class="text-muted fw-bold text-uppercase small tracking-wide mb-1">Registration</p>
-                        <div class="display-5 fw-bold text-dark mb-2">
+                        <div class="display-5 fw-bold text-body mb-2">
                             {% if event.price_type == 'free' %}
                                 <span class="text-success">Free</span>
                             {% else %}
@@ -310,7 +310,7 @@
                 </div>
             </div>
             {% else %}
-            <div class="border rounded-4 p-4 bg-white shadow-sm">
+            <div class="border rounded-4 p-4 bg-body shadow-sm">
                 <div class="rounded-4 p-3 mb-3 text-white shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
                     <p class="small text-uppercase fw-bold mb-1 opacity-75">PayID / Bank Transfer</p>
                     <h5 class="fw-bold mb-1">events@eventhub.com.au</h5>
@@ -319,31 +319,31 @@
 
                 <div class="row g-3">
                     <div class="col-6">
-                        <div class="bg-light rounded-4 p-3 h-100">
+                        <div class="bg-body rounded-4 p-3 h-100">
                             <div class="text-muted text-uppercase small fw-semibold">Account Name</div>
                             <div class="fw-bold">EventHub Pty Ltd</div>
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="bg-light rounded-4 p-3 h-100">
+                        <div class="bg-body rounded-4 p-3 h-100">
                             <div class="text-muted text-uppercase small fw-semibold">BSB</div>
                             <div class="fw-bold">062-000</div>
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="bg-light rounded-4 p-3 h-100">
+                        <div class="bg-body rounded-4 p-3 h-100">
                             <div class="text-muted text-uppercase small fw-semibold">Account Number</div>
                             <div class="fw-bold">12345678</div>
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="bg-light rounded-4 p-3 h-100">
+                        <div class="bg-body rounded-4 p-3 h-100">
                             <div class="text-muted text-uppercase small fw-semibold">Amount</div>
                             <div class="fw-bold">{{ event.price_label }}</div>
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="bg-light rounded-4 p-3">
+                        <div class="bg-body rounded-4 p-3">
                             <div class="text-muted text-uppercase small fw-semibold">Reference</div>
                             <div class="fw-bold">EVENT-{{ event.id }}{% if current_user.is_authenticated %}-{{ current_user.id }}{% endif %}</div>
                         </div>
@@ -359,7 +359,7 @@
             {% endif %}
 
             <div class="border rounded-4 overflow-hidden shadow-sm bg-white">
-                <div class="bg-light p-3 border-bottom">
+                <div class="bg-body p-3 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Location Map</h6>
                 </div>
                 <div style="height: 300px;">
