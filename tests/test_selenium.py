@@ -15,7 +15,7 @@ import uuid
 @pytest.fixture(scope="module")
 def driver():
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run headless for CI
+    # chrome_options.add_argument("--headless")  # Commented out so you can see the browser operate
     # In some local cases you might need to specify the executable path or remove headless to see it happen
     driver = webdriver.Chrome(options=chrome_options)
     yield driver
@@ -76,7 +76,7 @@ def test_login_flow_e2e(driver):
     driver.find_element(By.ID, "loginForm").submit()
     
     # Wait for redirect to index
-    WebDriverWait(driver, 5).until(EC.url_contains("/index"))
+    WebDriverWait(driver, 5).until(EC.url_contains("/events"))
     body_text = driver.find_element(By.TAG_NAME, "body").text
     assert "Login successful!" in body_text
     
