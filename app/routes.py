@@ -27,6 +27,7 @@ def wants_json_response():
 
 @bp.route('/')
 @bp.route('/index')
+@bp.route('/events')
 def index():
     query = Event.query
 
@@ -701,3 +702,7 @@ def saved_events():
         'saved_events.html',
         events=bookmarked_events
     )
+
+@bp.route('/landing')
+def landing():
+    return render_template('landing.html')
