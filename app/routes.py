@@ -24,6 +24,25 @@ def wants_json_response():
         or 'application/json' in request.accept_mimetypes
     )
 
+def safe_parse_date(date_str):
+    if not date_str:
+        return datetime.min.date()
+    for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%d/%m/%y']:
+        try:
+            return datetime.strptime(date_str, fmt).date()
+        except ValueError:
+            pass
+    return datetime.min.date()
+
+def format_date_display(date_str):
+    if not date_str:
+        return ""
+    for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%d/%m/%y']:
+        try:
+            return datetime.strptime(date_str, fmt).strftime('%d/%m/%y')
+        except ValueError:
+            pass
+    return date_str
 
 @bp.route('/')
 @bp.route('/index')
@@ -74,12 +93,8 @@ def index():
 
     # Custom date 
     elif from_date:
-        try:
-            start = datetime.strptime(from_date, '%Y-%m-%d').date()
-            end =start
-        except ValueError:
-            start = None
-            end = None
+        start = safe_parse_date(from_date)
+        end = start
 
     # Apply filter
     if start and end:
@@ -87,10 +102,7 @@ def index():
 
         for event in query.all():
             try:
-                try:
-                    event_date = datetime.strptime(event.date, '%Y-%m-%d').date()
-                except ValueError:
-                    event_date = datetime.strptime(event.date, '%d/%m/%Y').date()
+                event_date = safe_parse_date(event.date)
 
                 if start <= event_date <= end:
                     filtered_events.append(event)
@@ -101,10 +113,7 @@ def index():
         #events = sorted(filtered_events, key=lambda e: e.date)
         events = sorted(
         filtered_events,
-        key=lambda e: datetime.strptime(
-        e.date,
-        '%Y-%m-%d' if '-' in e.date else '%d/%m/%Y'
-    )
+        key=lambda e: safe_parse_date(e.date)
 )
         
 
@@ -660,7 +669,7 @@ def full_map():
         event_data.append({
             'id': event.id,
             'title': event.title,
-            'date': str(event.date),
+            'date': format_date_display(event.date),
             'latitude': event.lat,
             'longitude': event.lng,
             'location': event.location
@@ -681,7 +690,7 @@ def my_events():
 
     for order in current_user.orders:
         event = order.event
-        event_date = datetime.strptime(event.date, '%Y-%m-%d').date()
+        event_date = safe_parse_date(event.date)
         if event_date >= today:
             upcoming_events.append(event)
         else:
