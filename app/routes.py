@@ -25,6 +25,7 @@ def wants_json_response():
     )
 
 
+@bp.route('/')
 @bp.route('/index')
 @bp.route('/events')
 def index():
@@ -702,7 +703,6 @@ def saved_events():
         events=bookmarked_events
     )
 
-@bp.route('/')
 @bp.route('/landing')
 def landing():
     return render_template('landing.html')
