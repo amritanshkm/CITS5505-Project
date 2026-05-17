@@ -79,32 +79,25 @@ This project strictly adheres to robust software engineering standards and fully
 To adhere to robust software engineering standards and the project rubric, we have established a comprehensive test suite covering both Backend Logic and User Interface Automation. Our tests are orchestrated using `pytest`.
 
 ### 1. Backend Unit Tests
-We have built **5 Unit Tests** that instantiate an isolated in-memory SQLite database (`sqlite:///:memory:`) to verify the behavior of backend models and routing.
+We have built **25 Unit Tests** that instantiate an isolated in-memory SQLite database (`sqlite:///:memory:`) to verify the behavior of backend models, routing, and complex interactive data flows.
 
 Tests included:
-- Verifying the mathematical integrity of the salted password hashing function (`test_password_hashing`).
-- Verifying successful Commit to db on User Registration (`test_register_commits_to_db`).
-- Ensuring `WTForms` correctly intercepts duplicate email registrations via `ValidationError` (`test_register_duplicate_email_fails`).
-- Handling Flask-Login session management correctly upon login (`test_login_success_handles_session`).
-- Correct rejection of invalid login credentials (`test_login_failure_bad_password`).
+- **Authentication & Models (`tests/test_auth.py`)**: Verifies salted password hashing integrity, database commit validation on user registration, WTForms duplicate email interception, and correct Flask-Login session management handling.
 - **Executing robust CRUD data flows over the `Event` Model (`tests/test_events.py`)**: Operating entirely inside an isolated, high-speed in-memory database, this script acts as an automated user to verify edge-to-edge backend safety:
-  1. **Create Account**: Bootstraps a dummy User account robustly into the test DB.
-  2. **Create Event Data**: Simulates filling out a "PyTest Conference" activity payload, inserts it via ORM, and intercepts the DB yield.
-  3. **Verification**: Asserts coordinate mappings function properly upon retrieval.
-  4. **Update DB**: Manually alters the event title, fires a `commit()`, and verifies the DB snapshot changed correctly.
-  5. **Simulate M2M Interactions**: Attaches Comments, Announcements, and Bookmarks to simulate Phase 4 N:N traffic.
-  6. **Wipe State**: Invokes `db.session.delete()` to safely demolish all related assets via SQL cascade.
+  1. Bootstraps dummy accounts and Event structures into the test DB.
+  2. Asserts coordinate mappings function properly upon retrieval.
+  3. Verifies dynamic asynchronous interactions by testing our native `/like_comment` AJAX routes and confirming they successfully alter DB records and return correct JSON counts.
 - **Validating Checkout ledgers & Capacity Boundary Limits (`tests/test_orders.py`)**: Specifically assesses the Phase 5 implementation by asserting correct `Order` ledger generation flows. Checks include boundary validations ensuring an Event rejects registrations safely with flashed errors if maximum ticket `capacity` limits are exceeded by concurrent joining users.
+- **Personal Dashboards & Relationships (`tests/test_my_events.py`, `tests/test_saved_events.py`)**: Tests the dynamic population of user profiles. Validates that the Many-to-Many `user_bookmarks` relationship fetches accurate bookmarked events, and verifies `Event.creator_id` correctly aggregates 'My Created Events'.
 
-**To run the Unit Tests:**
+**To run the Backend Unit Tests:**
 ```bash
-python -m pytest tests/test_auth.py
-python -m pytest tests/test_events.py
-# Or to run the entire suite at once: python -m pytest tests/
+# Run all backend tests cleanly without popping up the browser:
+python -m pytest tests/ --ignore=tests/test_selenium.py -v
 ```
 
 ### 2. Live Server UI Automation (Selenium)
-We have implemented **5 E2E GUI Automation Tests** that utilize the Headless Chrome WebDriver to interact with our application precisely as a human being would.
+We have implemented **5 E2E GUI Automation Tests** that utilize the Chrome WebDriver to interact with our application precisely as a human being would. *Note: Headless mode has been disabled by default so you can visually watch the automated robot execute these tests locally.*
 
 Tests included:
 - Validation of Site Layout & Title (`test_home_page_title`).
@@ -114,7 +107,7 @@ Tests included:
 - Explicit endpoint hijacking attempt (`/profile`) being intercepted by `@login_required` bouncing the user out (`test_protected_route_rejection`).
 
 **To run the Selenium Tests:**
-*Ensure your Flask Live Server is running locally on port 5000 before executing these tests.*
+*Ensure your Flask Live Server is running locally on another terminal (`python run.py`) before executing these tests!*
 ```bash
-python -m pytest tests/test_selenium.py
+python -m pytest tests/test_selenium.py -v
 ```
