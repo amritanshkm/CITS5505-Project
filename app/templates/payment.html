@@ -27,7 +27,7 @@
                         {{ form.card_number.label(class="form-label fw-bold small text-muted text-uppercase") }}
                         <div class="input-group has-validation">
                             <span class="input-group-text bg-light border-end-0"><i class="bi bi-credit-card-2-front text-secondary"></i></span>
-                            {{ form.card_number(class="form-control form-control-lg border-start-0", placeholder="0000111122223333", id="cardNumber") }}
+                            {{ form.card_number(class="form-control form-control-lg border-start-0", placeholder="", id="cardNumber") }}
                             <div class="invalid-feedback" id="cardNumberError">Card number must be exactly 16 digits.</div>
                         </div>
                     </div>
@@ -42,7 +42,7 @@
                             {{ form.cvv.label(class="form-label fw-bold small text-muted text-uppercase") }}
                             <div class="input-group has-validation">
                                 <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-secondary"></i></span>
-                                {{ form.cvv(class="form-control form-control-lg border-start-0", placeholder="123", id="cvvNumber") }}
+                                {{ form.cvv(class="form-control form-control-lg border-start-0", placeholder="", id="cvvNumber") }}
                                 <div class="invalid-feedback" id="cvvError">Exactly 3 numeric digits.</div>
                             </div>
                         </div>

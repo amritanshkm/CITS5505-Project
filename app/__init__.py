@@ -28,10 +28,18 @@ def create_app(config_class=None):
     # Add custom Jinja filter for Australian date formatting
     @app.template_filter('aus_date')
     def aus_date_filter(date_string):
+        if not date_string:
+            return ""
         try:
             from datetime import datetime
-            return datetime.strptime(date_string, '%Y-%m-%d').strftime('%d/%m/%Y')
-        except (ValueError, TypeError):
+            for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%d/%m/%y']:
+                try:
+                    dt = datetime.strptime(date_string, fmt)
+                    return dt.strftime('%d/%m/%y')
+                except ValueError:
+                    pass
+            return date_string
+        except Exception:
             return date_string
 
     return app

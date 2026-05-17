@@ -896,3 +896,40 @@ body {
         flex-direction: column;
     }
 }
+
+/* ==========================================================================
+   🧭 NAVBAR UNIFIED BUTTON HOVER ANIMATION
+   ========================================================================== */
+
+.nav-btn {
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.nav-btn:hover {
+    opacity: 0.82;
+    transform: translateY(-1px);
+}
+
+
+/* ==========================================================================
+   🌙 DARK MODE FIXES
+   ========================================================================== */
+
+/* Map page: "Explore Events" badge - high contrast in dark mode */
+[data-bs-theme="dark"] .map-eyebrow {
+    background: #3730a3;
+    color: #e0e7ff;
+}
+
+/* Profile page: avatar info card - dark background in dark mode */
+[data-bs-theme="dark"] .profile-avatar-card,
+[data-bs-theme="dark"] .card.shadow-sm.rounded-4.text-center,
+[data-bs-theme="dark"] .profile-info-card {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-bs-theme="dark"] .profile-avatar-card .text-muted,
+[data-bs-theme="dark"] .card.shadow-sm.rounded-4.text-center .text-muted {
+    color: var(--text-secondary) !important;
+}

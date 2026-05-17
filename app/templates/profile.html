@@ -24,12 +24,12 @@
     color: white !important;
 }
 .nav-pills .nav-link {
-    color: #4b5563;
+    color: var(--text-secondary);
     border-radius: 0.5rem;
     margin-bottom: 0.25rem;
 }
 .nav-pills .nav-link:hover:not(.active) {
-    background-color: #f3f4f6;
+    background-color: rgba(79, 70, 229, 0.1);
 }
 </style>
 {% endblock %}
@@ -38,7 +38,7 @@
 <div class="row mt-4">
     <div class="col-lg-3 col-md-4 mb-4">
         <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
-            <div class="card-body text-center py-5 bg-white">
+            <div class="card-body text-center py-5">
                 <div class="mb-3 position-relative d-inline-block">
                     {% if user.avatar %}
                     <img src="{{ url_for('main.user_avatar', user_id=user.id) }}" class="rounded-circle shadow" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #4f46e5;">
