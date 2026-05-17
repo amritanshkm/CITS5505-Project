@@ -144,9 +144,12 @@
                                             <p class="card-text text-secondary small mb-1">
                                                 <i class="bi bi-calendar3 me-2"></i> {{ coll.date }}
                                             </p>
-                                            <p class="card-text text-secondary small mb-0">
+                                            <p class="card-text text-secondary small mb-3">
                                                 <i class="bi bi-geo-alt me-2"></i> {{ coll.location }}
                                             </p>
+                                            <div class="d-grid mt-auto pt-3 border-top border-secondary-subtle">
+                                                <a href="{{ url_for('main.event_detail', event_id=coll.id) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-semibold mt-1">View Event</a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -214,9 +217,12 @@
                                             <p class="card-text text-secondary small mb-1">
                                                 <i class="bi bi-calendar3 me-2"></i> {{ like.date }}
                                             </p>
-                                            <p class="card-text text-secondary small mb-0">
+                                            <p class="card-text text-secondary small mb-3">
                                                 <i class="bi bi-geo-alt me-2"></i> {{ like.location }}
                                             </p>
+                                            <div class="d-grid mt-auto pt-3 border-top border-secondary-subtle">
+                                                <a href="{{ url_for('main.event_detail', event_id=like.id) }}" class="btn btn-outline-danger btn-sm rounded-pill fw-semibold mt-1">View Event</a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
