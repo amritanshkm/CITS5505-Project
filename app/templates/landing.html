@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+
+
+    <div class="landing-bg"></div>
+
+    <main class="landing-hero">
+
+        <div class="landing-content">
+
+            <div class="landing-badge">
+                <i class="bi bi-stars"></i>
+                Discover Perth Events
+            </div>
+
+            <h1>
+                Find Your Next
+                <span>Experience</span>
+            </h1>
+
+            <p>
+                Explore workshops, meetups, music events,
+                fitness sessions, and social experiences happening around Perth.
+            </p>
+
+            <div class="landing-buttons">
+
+                <a href="{{ url_for('main.index') }}"
+                   class="btn btn-primary btn-lg px-5">
+
+                    Explore Events
+                </a>
+
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('main.register') }}"
+                   class="btn btn-outline-light btn-lg px-5">
+
+                    Join Now
+                </a>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </main>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% endblock %}
